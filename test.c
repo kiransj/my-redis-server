@@ -70,3 +70,31 @@ int Node_GetBalance(Node n)
     }
     return balance;
 }
+
+Node Node_SetLeftNode(Node n, Node left)
+{
+    if(!IS_NULL(left))
+    {
+        left->parent = n;
+    }
+    n->left = left;
+    Node_UpdateHeight(n);
+    return n->left;
+}
+
+Node Node_SetRightNode(Node n, Node right)
+{
+    if(!IS_NULL(right))
+    {
+        right->parent = n;
+    }
+    n->right = right;
+    Node_UpdateHeight(n);
+    return n->right;
+}
+
+int main(int argc, char *argv[])
+{
+    Node n = Node_Create(10);    
+    return 0;
+}
