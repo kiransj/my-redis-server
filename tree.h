@@ -35,5 +35,5 @@ void Tree_Inorder(Tree t);
 void Tree_Preorder(Tree t);
 void Tree_Postorder(Tree t);
 Node Tree_Find(Tree t, int key);
-
+void Tree_Delete(Tree t);
 #endif

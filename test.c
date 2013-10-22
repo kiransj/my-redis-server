@@ -17,6 +17,10 @@ int main(int argc, char *argv[])
     {
         Node n = Node_Create(random() % 100000), tmp;
         tmp = Tree_AddNode(t, n);
+        if(tmp != n)
+        {
+            Free(n);
+        }
     }
 
     if(argc == 3)
@@ -48,5 +52,6 @@ int main(int argc, char *argv[])
         n = n->prev;
     }
     Tree_Postorder(t);
+    Tree_Delete(t);
     return 0;
 }

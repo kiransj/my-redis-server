@@ -306,6 +306,20 @@ void Tree_Print(Tree t)
             queue[top++] = tmp->right;
         }
     }
+    Free(queue);
+}
+
+void Tree_Delete(Tree t)
+{
+    Node tmp = t->first, old = t->first;
+    while(!IS_NULL(tmp))
+    {
+        old = tmp->next;
+        Free(tmp);
+        tmp = old;
+    }
+    Free(t);
+    return ;
 }
 
 void Tree_Inorder_priv(Node root)
