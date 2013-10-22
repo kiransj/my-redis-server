@@ -114,7 +114,7 @@ Tree Tree_Create(void)
 void RotateLeft(Tree t, Node n)
 {
     Node p = n->parent, temp = NULL;
-    enum { LEFT, RIGHT } side;
+    enum { LEFT, RIGHT } side = LEFT;
     if(!IS_NULL(p))
     {
         side = (p->left == n) ? LEFT : RIGHT;
@@ -143,7 +143,7 @@ void RotateLeft(Tree t, Node n)
 void RotateRight(Tree t, Node n)
 {
     Node p = n->parent, temp = NULL;
-    enum { LEFT, RIGHT } side;
+    enum { LEFT, RIGHT } side = LEFT;
     if(!IS_NULL(p))
     {
         side = (p->left == n) ? LEFT : RIGHT;
@@ -237,6 +237,7 @@ int Tree_AddNode(Tree t, int data)
             tmp = tmp->parent;
         }
     }
+    return 1;
 }
 
 void Tree_Print(Tree t)
