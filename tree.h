@@ -23,6 +23,9 @@ struct _Tree
 {
     int num_elements;
     Node root;
+
+    /*The first node in DDL*/
+    Node first, last;
 };
 
 Tree Tree_Create(void);
@@ -30,6 +33,7 @@ Node Tree_AddNode(Tree t, Node n);
 void Tree_Print(Tree t);
 void Tree_Inorder(Tree t);
 void Tree_Preorder(Tree t);
+void Tree_Postorder(Tree t);
 Node Tree_Find(Tree t, int key);
 
 #endif

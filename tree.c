@@ -187,6 +187,8 @@ Node Tree_AddNode(Tree t, Node n)
     if(IS_NULL(t->root))
     {
         t->root = n;
+        t->first = n;
+        t->last = n;
         return n;
     }
     else
@@ -198,7 +200,15 @@ Node Tree_AddNode(Tree t, Node n)
             {
                 if(IS_NULL(tmp->left))
                 {
-                    Node_SetLeftNode(tmp, n);                    
+                    Node prev = tmp->prev;
+                    Node_SetLeftNode(tmp, n);
+                    if(!IS_NULL(prev))
+                        prev->next = n;
+                    tmp->prev = n;
+                    n->prev = prev;
+                    n->next = tmp;
+                    if(t->first->key > n->key)
+                        t->first = n;
                     break;
                 }
                 else
@@ -210,7 +220,15 @@ Node Tree_AddNode(Tree t, Node n)
             {
                 if(IS_NULL(tmp->right))
                 {
+                    Node next = tmp->next;
                     Node_SetRightNode(tmp, n);
+                    n->next = next;
+                    if(!IS_NULL(next))
+                        next->prev = n;
+                    tmp->next = n;
+                    n->prev = tmp;
+                    if(t->last->key < n->key)
+                        t->last = n;
                     break;
                 }
                 else
@@ -294,12 +312,14 @@ void Tree_Inorder_priv(Node root)
 {
     if(IS_NULL(root)) return;
     Tree_Inorder_priv(root->left);
-    printf(" %3d ", root->key);
+    printf(" %4d ", root->key);
     Tree_Inorder_priv(root->right);
 }
 void Tree_Inorder(Tree t)
 {
+    printf("\n\n");
     Tree_Inorder_priv(t->root);
+    printf("\n\n");
 }
 
 void Tree_Preorder_priv(Node root)
@@ -315,3 +335,16 @@ void Tree_Preorder(Tree t)
     Tree_Preorder_priv(t->root);
 }
 
+void Tree_Postorder_priv(Node root)
+{
+    if(IS_NULL(root)) return;
+    Tree_Postorder_priv(root->right);
+    printf(" %3d ", root->key);
+    Tree_Postorder_priv(root->left);        
+}
+
+void Tree_Postorder(Tree t)
+{
+    printf("\n\n");
+    Tree_Postorder_priv(t->root);
+}
