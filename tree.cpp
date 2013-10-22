@@ -188,7 +188,7 @@ Node* Tree::AddNode(Node *n)
         }
         else
         {
-            /*There is a node already with the same key.
+            /* There is a node already with the same key.
              * Return the old node*/
             return tmp;
         }       

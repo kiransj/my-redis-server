@@ -22,8 +22,20 @@ int main(int argc, char *argv[])
             delete n;
         }
     }
+
+#if 0    
+    if(argc == 3)
+    for(i = count+1; i >= 0; i--)
+    {
+        Node *tmp = t.FindNode(i);
+        if(IS_NULL(tmp))
+        {
+            log_msg("key '%d' not found", i);
+        }
+    }    
     t.PrintTree();
     t.InOrder();
     t.PrintList();
+#endif    
     return 0;
 }
