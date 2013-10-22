@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include "util.h"
+
 void log_msg(const char *format, ...)
 {
     char buffer[1024];
@@ -8,19 +9,4 @@ void log_msg(const char *format, ...)
     vsnprintf(buffer, 1024, format, ap);
     printf("%s\n", buffer);
     return;
-}
-
-void* Malloc(const size_t size)
-{
-    void *ptr = malloc(size);
-    if(IS_NULL(ptr))
-    {
-        log_msg("Malloc(%u) failed", size);
-    }
-    return ptr;
-}
-
-void Free(void *ptr)
-{
-    free(ptr);
 }

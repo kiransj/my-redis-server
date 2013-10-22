@@ -13,17 +13,17 @@ int main(int argc, char *argv[])
     }
     count = atoi(argv[1]);
 
-    t = Tree_Create();
     for(i = count; i >= 1; i--)
     {
-        Node n = Node_Create(random() % 100000), tmp;
-        tmp = Tree_AddNode(t, n);
+        Node *n = new Node(i), *tmp;
+        tmp = t.AddNode(n);
         if(tmp != n)
         {
-            Node_Delete(n);
+            delete n;
         }
     }
-
-    Tree_Delete(t);
+    t.PrintTree();
+    t.InOrder();
+    t.PrintList();
     return 0;
 }

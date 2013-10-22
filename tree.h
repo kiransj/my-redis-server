@@ -1,46 +1,85 @@
 #ifndef _TREE_H_
 #define _TREE_H_
 #include "util.h"
-typedef struct _Node *Node;
-struct _Node
+
+class Node
 {
-    /*Node internal Data for tree*/
-    int height;
-    Node parent, left, right;
+    private:
+        int height;
+        /*Data structure needed for tree*/
+        Node *parent, *left, *right;
+        /*Data structure needed for Doubly linked list*/
+        Node *prev, *next;
 
-    /*DDL data*/
-    Node prev, next;
+        /*Key and Data associated with it*/
+        int key;
 
-    /*User data*/
-    int key;
-    
+    public:
+        Node(int k)
+        {
+            height = 0;
+            key = k;
+            parent = left = right = prev = next = NULL;
+        }
+
+        ~Node()
+        {
+            key = height = 0;
+            parent = left = right = prev = next = NULL;
+        }
+        
+        int GetHeight(void) { return height;}
+        int GetKey(void) { return key; }
+        int UpdateHeight(void);
+        int GetBalance(void);
+
+        void SetLeftNode(Node *left);
+        void SetRightNode(Node *right);
+        void SetParentNode(Node *parent) { this->parent = parent; }
+        void SetNext(Node *next) { this->next = next; }
+        void SetPrev(Node *prev) { this->prev = prev; }
+        Node* GetLeft(void) { return left; }
+        Node* GetRight(void) { return right; }
+        Node* GetParent(void) { return parent; }
+        Node* GetPrev(void) { return prev; }
+        Node* GetNext(void) { return next; }
 };
 
-Node Node_Create(int key);
-void Node_Delete(Node n);
-
-typedef struct _Tree *Tree;
-struct _Tree
+class Tree
 {
-    int num_elements;
-    Node root;
+    private:
+        uint32_t num_elements;
 
-    /*The first node in DDL*/
-    Node first, last;
+        /*The root of the tree node*/
+        Node *root;
+
+        /*The first and the last node of the doubly linked list*/
+        Node *first, *last;
+
+    private:  /*Priv functions*/
+        void RotateLeft(Node *n);
+        void RotateRight(Node *n);
+        void BalanceAt(Node *n);
+
+        static void preorder_priv(Node *n);
+        static void inorder_priv(Node *n);
+        static void postorder_priv(Node *n);
+    public:
+        Tree()
+        {
+            root = first = last = NULL;
+            num_elements = 0;
+        }
+        ~Tree();
+
+        Node* AddNode(Node *n);
+        Node* FindNode(int key);
+
+        void PreOrder(void);
+        void InOrder(void);
+        void PostOrder(void);
+        void PrintTree(void);
+        void PrintList(void);
 };
 
-Tree Tree_Create(void);
-
-/* if the key is already present then it returns the old node with
- * the same key else returns the newnode if insertion is successful*/
-Node Tree_AddNode(Tree t, Node newnode);
-
-/* returns the node with the specified key*/
-Node Tree_Find(Tree t, int key);
-
-void Tree_Print(Tree t);
-void Tree_Inorder(Tree t);
-void Tree_Preorder(Tree t);
-void Tree_Postorder(Tree t);
-void Tree_Delete(Tree t);
 #endif

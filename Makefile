@@ -1,29 +1,27 @@
-CC:=gcc
-
-CFLAGS := -g3
+CPP:=g++
+CFLAGS := -g
 #CFLAGS := -Os -s -ffunction-sections -fdata-sections 
 WARNINGS:= -Wall
 
 INCLUDES := -I. 
 OUTPUT   := ./a.out
 
-C_FILES :=
-C_FILES += tree.c
-C_FILES += util.c
-C_FILES += test.c
+CPP_FILES := 
+CPP_FILES += util.cpp
+CPP_FILES += tree.cpp
+CPP_FILES += test.cpp
 
-REDIS_OBJECTS :=
-REDIS_OBJECTS += $(C_FILES:.c=.o)	
+CPP_OBJECTS := $(CPP_FILES:.cpp=.o)	
 
 all: $(OUTPUT)
 
-$(OUTPUT):$(REDIS_OBJECTS)
+$(OUTPUT):$(CPP_OBJECTS)
 	@echo "building $@"
-	@$(CC) $(REDIS_OBJECTS) -o $@
+	@$(CPP) $(CPP_OBJECTS) $(C_OBJECTS) -o $@
 
-%.o:%.c
+%.o:%.cpp
 	@echo "compiling $^"
-	@$(CC) $(CFLAGS) $(WARNINGS) $(INCLUDES) -c $^  -o $@
+	@$(CPP) $(CFLAGS) $(WARNINGS) $(INCLUDES) -c $^  -o $@
 
 clean:
-	@rm -f $(REDIS_OBJECTS) $(OUTPUT) *.core
+	@rm -f $(C_OBJECTS) $(CPP_OBJECTS) $(OUTPUT) *.core
