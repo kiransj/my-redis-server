@@ -1,7 +1,7 @@
 CC:=gcc
 
-#CFLAGS := -g3
-CFLAGS := -Os -s -ffunction-sections -fdata-sections 
+CFLAGS := -g3
+#CFLAGS := -Os -s -ffunction-sections -fdata-sections 
 WARNINGS:= -Wall
 
 INCLUDES := -Iinc 

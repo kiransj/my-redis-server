@@ -18,8 +18,11 @@ struct _Node
 Node Node_Create(int data)
 {
     Node tmp = (Node)malloc(sizeof(struct _Node));
-    memset(tmp, 0, sizeof(struct _Node));
-    tmp->data = data;
+    if(!IS_NULL(tmp))
+    {
+        memset(tmp, 0, sizeof(struct _Node));
+        tmp->data = data;
+    }
     return tmp;
 }
 
@@ -105,8 +108,11 @@ struct _Tree
 Tree Tree_Create(void)
 {
     Tree t = (Tree)malloc(sizeof(struct _Tree));
-    t->root = NULL;
-    t->num_elements = 0;
+    if(!IS_NULL(t))
+    {
+        t->root = NULL;
+        t->num_elements = 0;
+    }
     return t;
 }
 
@@ -189,6 +195,10 @@ void Tree_BalanceAt(Tree t, Node n)
 int Tree_AddNode(Tree t, int data)
 {
     Node n = Node_Create(data);
+    if(IS_NULL(n))
+    {
+        return -1;
+    }
     if(IS_NULL(t->root))
     {
         t->root = n;
@@ -197,7 +207,7 @@ int Tree_AddNode(Tree t, int data)
     else
     {
         Node tmp = t->root;
-        while(1)
+        while(!IS_NULL(tmp))
         {
             if(Node_GetData(tmp) > data)
             {
@@ -244,15 +254,16 @@ void Tree_Print(Tree t)
 {
     int i = 0, count = 1;
     int back=0, top = 0;
-    Node queue[1000];
+    Node *queue;
+    queue = (Node *)malloc(t->num_elements * sizeof(struct _Node)) ;
     queue[top++] = t->root;
     while(back != top)
     {
         Node tmp = queue[back++];
         if(!IS_NULL(tmp))
-            printf("  %3d  ", tmp->data);
+            printf(" %3d ", tmp->data);
         else
-            printf("  %3d  ", 0);
+            printf(" %3d ", 0);
         i++;
         if(i == count)
         {
@@ -272,7 +283,7 @@ void Tree_Inorder_priv(Node root)
 {
     if(IS_NULL(root)) return;
     Tree_Inorder_priv(root->left);
-    printf("  %d  ", root->data);
+    printf(" %3d ", root->data);
     Tree_Inorder_priv(root->right);
 }
 void Tree_Inorder(Tree t)
@@ -283,10 +294,11 @@ void Tree_Inorder(Tree t)
 void Tree_Preorder_priv(Node root)
 {
     if(IS_NULL(root)) return;
-    printf("  %d  ", root->data);
+    printf(" %3d ", root->data);
     Tree_Preorder_priv(root->left);    
     Tree_Preorder_priv(root->right);
 }
+
 void Tree_Preorder(Tree t)
 {
     Tree_Preorder_priv(t->root);
@@ -294,17 +306,13 @@ void Tree_Preorder(Tree t)
 
 int main(int argc, char *argv[])
 {
-    int i = 0;
+    int i = 0, count = atoi(argv[1]);
     Tree t = Tree_Create();
-    for(i = 1; i <= 20; i++)
+    for(i = 1; i <= count; i++)
     {
         Tree_AddNode(t, i);
     }
-    Tree_Inorder(t);
-    printf("\n");
-    Tree_Preorder(t);
-    printf("\n");
-    Tree_Print(t);
-    printf("\n");
+//    Tree_Print(t);
+//    printf("\n");
     return 0;
 }
