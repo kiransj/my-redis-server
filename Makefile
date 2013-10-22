@@ -4,11 +4,13 @@ CFLAGS := -g3
 #CFLAGS := -Os -s -ffunction-sections -fdata-sections 
 WARNINGS:= -Wall
 
-INCLUDES := -Iinc 
+INCLUDES := -I. 
 OUTPUT   := ./a.out
 
 C_FILES :=
 C_FILES += tree.c
+C_FILES += util.c
+C_FILES += test.c
 
 REDIS_OBJECTS :=
 REDIS_OBJECTS += $(C_FILES:.c=.o)	

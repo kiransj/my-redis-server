@@ -3,39 +3,8 @@
 #include <string.h>
 #include <stdarg.h>
 
-#define IS_NULL(x) ((x) == NULL)
-#define MAX(x, y)  ((x > y) ? (x) : (y))
-typedef struct _Node *Node;
-struct _Node
-{
-    /*Node internal Data*/
-    int height;
-    Node parent, left, right;
-
-    /*User data*/
-    int data;
-};
-
-void log_msg(const char *format, ...);
-void log_msg(const char *format, ...)
-{
-    char buffer[1024];
-    va_list ap;
-    va_start(ap, format);
-    vsnprintf(buffer, 1024, format, ap);
-    printf("%s\n", buffer);
-    return;
-}
-
-void* Malloc(const size_t size)
-{
-    void *ptr = malloc(size);
-    if(IS_NULL(ptr))
-    {
-        log_msg("Malloc(%u) failed", size);
-    }
-    return ptr;
-}
+#include "tree.h"
+#include "util.h"
 
 Node Node_Create(int data)
 {
@@ -119,13 +88,6 @@ Node Node_SetRightNode(Node n, Node right)
     return n->right;
 }
 
-
-typedef struct _Tree *Tree;
-struct _Tree
-{
-    int num_elements;
-    Node root;
-};
 
 Tree Tree_Create(void)
 {
@@ -332,13 +294,3 @@ void Tree_Preorder(Tree t)
     Tree_Preorder_priv(t->root);
 }
 
-int main(int argc, char *argv[])
-{
-    int i = 0, count = atoi(argv[1]);
-    Tree t = Tree_Create();
-    for(i = 1; i <= count; i++)
-    {
-        Tree_AddNode(t, i);
-    }
-    return 0;
-}
