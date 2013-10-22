@@ -60,7 +60,8 @@ class Tree
         void RotateLeft(Node *n);
         void RotateRight(Node *n);
         void BalanceAt(Node *n);
-
+	
+	static int  height_priv(Node *n);
         static void preorder_priv(Node *n);
         static void inorder_priv(Node *n);
         static void postorder_priv(Node *n);
@@ -83,6 +84,7 @@ class Tree
          * */
         Node* FindNode(int key);
 
+	int  Height(void);
         void PreOrder(void);
         void InOrder(void);
         void PostOrder(void);

@@ -22,8 +22,9 @@ int main(int argc, char *argv[])
             delete n;
         }
     }
+	
 
-#if 0    
+#if 0 
     if(argc == 3)
     for(i = count+1; i >= 0; i--)
     {
@@ -36,6 +37,7 @@ int main(int argc, char *argv[])
     t.PrintTree();
     t.InOrder();
     t.PrintList();
+	log_msg("Height of the tree : %d", t.Height());
 #endif    
     return 0;
 }

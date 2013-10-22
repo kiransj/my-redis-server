@@ -322,3 +322,15 @@ void Tree::PostOrder(void)
     postorder_priv(root);
     printf("\n\n");
 }
+
+int Tree::height_priv(Node *n)
+{
+	if(IS_NULL(n))
+		return 0;
+	return 1 + MAX(height_priv(n->GetLeft()), height_priv(n->GetRight()));
+}
+
+int Tree::Height(void)
+{
+	return height_priv(this->root);
+}
