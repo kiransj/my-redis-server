@@ -19,3 +19,8 @@ void* Malloc(const size_t size)
     }
     return ptr;
 }
+
+void Free(void *ptr)
+{
+    free(ptr);
+}
