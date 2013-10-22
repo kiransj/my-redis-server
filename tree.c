@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
 
 #define IS_NULL(x) ((x) == NULL)
 #define MAX(x, y)  ((x > y) ? (x) : (y))
@@ -15,23 +16,44 @@ struct _Node
     int data;
 };
 
+void log_msg(const char *format, ...);
+void log_msg(const char *format, ...)
+{
+    char buffer[1024];
+    va_list ap;
+    va_start(ap, format);
+    vsnprintf(buffer, 1024, format, ap);
+    printf("%s\n", buffer);
+    return;
+}
+
+void* Malloc(const size_t size)
+{
+    void *ptr = malloc(size);
+    if(IS_NULL(ptr))
+    {
+        log_msg("Malloc(%u) failed", size);
+    }
+    return ptr;
+}
+
 Node Node_Create(int data)
 {
-    Node tmp = (Node)malloc(sizeof(struct _Node));
+    Node tmp = (Node)Malloc(sizeof(struct _Node));
     if(!IS_NULL(tmp))
     {
         memset(tmp, 0, sizeof(struct _Node));
         tmp->data = data;
-    }
+    }    
     return tmp;
 }
 
-int Node_GetHeight(Node n)
+inline int Node_GetHeight(Node n)
 {
     return n->height;
 }
 
-int Node_GetData(Node n)
+inline int Node_GetData(Node n)
 {
     return n->data;
 }
@@ -107,7 +129,7 @@ struct _Tree
 
 Tree Tree_Create(void)
 {
-    Tree t = (Tree)malloc(sizeof(struct _Tree));
+    Tree t = (Tree)Malloc(sizeof(struct _Tree));
     if(!IS_NULL(t))
     {
         t->root = NULL;
@@ -197,6 +219,7 @@ int Tree_AddNode(Tree t, int data)
     Node n = Node_Create(data);
     if(IS_NULL(n))
     {
+        log_msg("Node_Create() failed");
         return -1;
     }
     if(IS_NULL(t->root))
@@ -255,7 +278,12 @@ void Tree_Print(Tree t)
     int i = 0, count = 1;
     int back=0, top = 0;
     Node *queue;
-    queue = (Node *)malloc(t->num_elements * sizeof(struct _Node)) ;
+    queue = (Node *)Malloc(t->num_elements * sizeof(struct _Node));
+    if(IS_NULL(queue))
+    {
+        log_msg("Tree_Print failed due to low memory");
+        return;
+    }
     queue[top++] = t->root;
     while(back != top)
     {
@@ -312,7 +340,5 @@ int main(int argc, char *argv[])
     {
         Tree_AddNode(t, i);
     }
-//    Tree_Print(t);
-//    printf("\n");
     return 0;
 }
