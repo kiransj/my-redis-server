@@ -2,11 +2,13 @@
 #include <stdlib.h>
 #include "tree.h"
 
+#include <string>
+using namespace std;
 
 int main(int argc, char *argv[])
 {
     int i = 0, count;
-    Tree<int> t;
+    Tree<string> t;
     if(argc == 1)
     {
         log_msg("usage ./a.out <number>");
@@ -16,21 +18,23 @@ int main(int argc, char *argv[])
 
     for(i = count; i >= 1; i--)
     {
-        Node<int> *n = new Node<int>(i);
-        Node<int> *tmp;
+        char buffer[1024];
+        snprintf(buffer, 1024, "'%d'", i); 
+        Node<string> *n = new Node<string>(string(buffer)), *tmp;
         tmp = t.AddNode(n);
         if(tmp != n)
         {
             delete n;
         }
     }
-    
 
-#if 1 
+#if 0 
     if(argc == 3)
     for(i = count+1; i >= 0; i--)
     {
-        Node<int> *tmp = t.FindNode(i);
+        char buffer[1024];
+        snprintf(buffer, 1024, "'%d'", i); 
+        Node<string> *tmp = t.FindNode(string(buffer));
         if(IS_NULL(tmp))
         {
             log_msg("key '%d' not found", i);

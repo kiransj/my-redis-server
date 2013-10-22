@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdarg.h>
 
+#include <iostream>
 #include "tree.h"
 #include "util.h"
 
@@ -271,7 +272,7 @@ void Tree<KEY>::PrintTree(void)
     {
         Node<KEY> *tmp = myq.front(); myq.pop();
         if(!IS_NULL(tmp))
-            printf(" %3d ", tmp->GetKey());
+            cout<<" "<<tmp->GetKey()<<" ";
         else
             printf(" %3d ", 0);
         i++;
@@ -296,7 +297,7 @@ void Tree<KEY>::PrintList(void)
     printf("\n\n");
     while(!IS_NULL(tmp))
     {        
-        printf(" %4d ", tmp->GetKey());
+        cout<<" "<<tmp->GetKey()<<" ";
         tmp = tmp->GetNext();
     }
     printf("\n\n");
@@ -307,7 +308,7 @@ void Tree<KEY>::inorder_priv(Node<KEY> *n)
 {
     if(IS_NULL(n)) return;
     inorder_priv(n->GetLeft());
-    printf(" %4d ", n->GetKey());
+    cout<<" "<<n->GetKey()<<" ";
     inorder_priv(n->GetRight());
 }
 template <class KEY>
@@ -322,7 +323,7 @@ template <class KEY>
 void Tree<KEY>::preorder_priv(Node<KEY> *n)
 {
     if(IS_NULL(n)) return;
-    printf(" %4d ", n->GetKey());
+    cout<<" "<<n->GetKey()<<" ";
     preorder_priv(n->GetLeft());
     preorder_priv(n->GetRight());
 }
@@ -340,7 +341,7 @@ void Tree<KEY>::postorder_priv(Node<KEY> *n)
 {
     if(IS_NULL(n)) return;
     postorder_priv(n->GetRight());
-    printf(" %4d ", n->GetKey());
+    cout<<" "<<n->GetKey()<<" ";
     postorder_priv(n->GetLeft());
 }
 
@@ -367,4 +368,7 @@ int Tree<KEY>::Height(void)
 }
 
 template class Tree<int>;
-template class Node<int>;
+
+#include <string>
+using namespace std;
+template class Tree<string>;

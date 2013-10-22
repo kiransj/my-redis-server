@@ -16,12 +16,12 @@ CPP_OBJECTS := $(CPP_FILES:.cpp=.o)
 all: $(OUTPUT)
 
 $(OUTPUT):$(CPP_OBJECTS)
-    @echo "building $@"
-    @$(CPP) $(CPP_OBJECTS) $(C_OBJECTS) -o $@
+	@echo "building $@"
+	@$(CPP) $(CPP_OBJECTS) $(C_OBJECTS) -o $@
 
 %.o:%.cpp
-    @echo "compiling $^"
-    @$(CPP) $(CFLAGS) $(WARNINGS) $(INCLUDES) -c $^  -o $@
+	@echo "compiling $^"
+	@$(CPP) $(CFLAGS) $(WARNINGS) $(INCLUDES) -c $^  -o $@
 
 clean:
-    @rm -f $(C_OBJECTS) $(CPP_OBJECTS) $(OUTPUT) *.core
+	@rm -f $(C_OBJECTS) $(CPP_OBJECTS) $(OUTPUT) *.core
