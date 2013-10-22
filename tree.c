@@ -13,8 +13,14 @@ Node Node_Create(int key)
     {
         memset(tmp, 0, sizeof(struct _Node));
         tmp->key = key;
-    }    
+    }
     return tmp;
+}
+
+void Node_Delete(Node n)
+{
+    memset(n, 0, sizeof(struct _Node));
+    Free(n);
 }
 
 inline int Node_GetHeight(Node n)
@@ -53,7 +59,7 @@ int Node_GetBalance(Node n)
     int balance = 0;
     if(!IS_NULL(n->left) && !IS_NULL(n->right))
     {
-        balance = Node_GetHeight(n->left) - Node_GetHeight(n->right); 
+        balance = Node_GetHeight(n->left) - Node_GetHeight(n->right);
     }
     else if(!IS_NULL(n->left))
     {
@@ -118,7 +124,7 @@ void RotateLeft(Tree t, Node n)
         {
             Node_SetLeftNode(p, temp);
         }
-        else 
+        else
         {
             Node_SetRightNode(p, temp);
         }
@@ -147,7 +153,7 @@ void RotateRight(Tree t, Node n)
         {
             Node_SetLeftNode(p, temp);
         }
-        else 
+        else
         {
             Node_SetRightNode(p, temp);
         }
@@ -173,17 +179,13 @@ void Tree_BalanceAt(Tree t, Node n)
         if(Node_GetBalance(n->right) > 0)
             RotateRight(t, n->right);
         RotateLeft(t, n);
-    }    
+    }
 }
 
 Node Tree_AddNode(Tree t, Node n)
 {
     const int key = n->key;
-    if(IS_NULL(n))
-    {
-        log_msg("Node_Create() failed");
-        return NULL;
-    }
+
     if(IS_NULL(t->root))
     {
         t->root = n;
@@ -191,64 +193,69 @@ Node Tree_AddNode(Tree t, Node n)
         t->last = n;
         return n;
     }
-    else
+
+    Node tmp = t->root;
+    while(!IS_NULL(tmp))
     {
-        Node tmp = t->root;
-        while(!IS_NULL(tmp))
+        if(Node_Getkey(tmp) > key)
         {
-            if(Node_Getkey(tmp) > key)
+            if(IS_NULL(tmp->left))
             {
-                if(IS_NULL(tmp->left))
-                {
-                    Node prev = tmp->prev;
-                    Node_SetLeftNode(tmp, n);
-                    if(!IS_NULL(prev))
-                        prev->next = n;
-                    tmp->prev = n;
-                    n->prev = prev;
-                    n->next = tmp;
-                    if(t->first->key > n->key)
-                        t->first = n;
-                    break;
-                }
-                else
-                {
-                    tmp = tmp->left;   
-                }
-            }
-            else if(Node_Getkey(tmp) < key)
-            {
-                if(IS_NULL(tmp->right))
-                {
-                    Node next = tmp->next;
-                    Node_SetRightNode(tmp, n);
-                    n->next = next;
-                    if(!IS_NULL(next))
-                        next->prev = n;
-                    tmp->next = n;
-                    n->prev = tmp;
-                    if(t->last->key < n->key)
-                        t->last = n;
-                    break;
-                }
-                else
-                {
-                    tmp = tmp->right;
-                }
+                Node_SetLeftNode(tmp, n);
+
+                /*Now update the doubly linked list*/
+                Node prev = tmp->prev;
+                if(!IS_NULL(prev))
+                    prev->next = n;
+                tmp->prev = n;
+                n->prev = prev;
+                n->next = tmp;
+                if(t->first->key > n->key)
+                    t->first = n;
+                break;
             }
             else
             {
-                return tmp;
+                tmp = tmp->left;
             }
         }
-        t->num_elements++;
-        tmp = n;
-        while(!IS_NULL(tmp))
+        else if(Node_Getkey(tmp) < key)
         {
-            Node_UpdateHeight(tmp);
-            Tree_BalanceAt(t, tmp);
-            tmp = tmp->parent;
+            if(IS_NULL(tmp->right))
+            {
+                Node_SetRightNode(tmp, n);
+
+                /*Now update the doubly linked list*/
+                Node next = tmp->next;
+                n->next = next;
+                if(!IS_NULL(next))
+                    next->prev = n;
+                tmp->next = n;
+                n->prev = tmp;
+                if(t->last->key < n->key)
+                    t->last = n;
+                break;
+            }
+            else
+            {
+                tmp = tmp->right;
+            }
         }
+        else
+        {
+            /*There is a node already with the same key.
+             * Return the old node*/
+            return tmp;
+        }
+    }
+    t->num_elements++;
+    /*Now check if the tree needs rebalancing*/
+    tmp = n;
+    while(!IS_NULL(tmp))
+    {
+        Node_UpdateHeight(tmp);
+        Tree_BalanceAt(t, tmp);
+        tmp = tmp->parent;
     }
     return n;
 }
@@ -260,7 +267,7 @@ Node Tree_Find(Tree t, int key)
     {
         if(Node_Getkey(tmp) > key)
         {
-            tmp = tmp->left;   
+            tmp = tmp->left;
         }
         else if(Node_Getkey(tmp) < key)
         {
@@ -315,9 +322,10 @@ void Tree_Delete(Tree t)
     while(!IS_NULL(tmp))
     {
         old = tmp->next;
-        Free(tmp);
+        Node_Delete(tmp);
         tmp = old;
     }
+    memset(t, 0, sizeof(struct _Tree));
     Free(t);
     return ;
 }
@@ -340,7 +348,7 @@ void Tree_Preorder_priv(Node root)
 {
     if(IS_NULL(root)) return;
     printf(" %3d ", root->key);
-    Tree_Preorder_priv(root->left);    
+    Tree_Preorder_priv(root->left);
     Tree_Preorder_priv(root->right);
 }
 
@@ -354,7 +362,7 @@ void Tree_Postorder_priv(Node root)
     if(IS_NULL(root)) return;
     Tree_Postorder_priv(root->right);
     printf(" %3d ", root->key);
-    Tree_Postorder_priv(root->left);        
+    Tree_Postorder_priv(root->left);
 }
 
 void Tree_Postorder(Tree t)

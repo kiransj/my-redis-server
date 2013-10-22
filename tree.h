@@ -13,6 +13,7 @@ struct _Node
 
     /*User data*/
     int key;
+    
 };
 
 Node Node_Create(int key);
@@ -29,11 +30,17 @@ struct _Tree
 };
 
 Tree Tree_Create(void);
-Node Tree_AddNode(Tree t, Node n);
+
+/* if the key is already present then it returns the old node with
+ * the same key else returns the newnode if insertion is successful*/
+Node Tree_AddNode(Tree t, Node newnode);
+
+/* returns the node with the specified key*/
+Node Tree_Find(Tree t, int key);
+
 void Tree_Print(Tree t);
 void Tree_Inorder(Tree t);
 void Tree_Preorder(Tree t);
 void Tree_Postorder(Tree t);
-Node Tree_Find(Tree t, int key);
 void Tree_Delete(Tree t);
 #endif
