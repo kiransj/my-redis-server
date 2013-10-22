@@ -6,13 +6,13 @@
 #include "tree.h"
 #include "util.h"
 
-Node Node_Create(int data)
+Node Node_Create(int key)
 {
     Node tmp = (Node)Malloc(sizeof(struct _Node));
     if(!IS_NULL(tmp))
     {
         memset(tmp, 0, sizeof(struct _Node));
-        tmp->data = data;
+        tmp->key = key;
     }    
     return tmp;
 }
@@ -22,9 +22,9 @@ inline int Node_GetHeight(Node n)
     return n->height;
 }
 
-inline int Node_GetData(Node n)
+inline int Node_Getkey(Node n)
 {
-    return n->data;
+    return n->key;
 }
 
 int Node_UpdateHeight(Node n)
@@ -176,29 +176,29 @@ void Tree_BalanceAt(Tree t, Node n)
     }    
 }
 
-int Tree_AddNode(Tree t, int data)
+Node Tree_AddNode(Tree t, Node n)
 {
-    Node n = Node_Create(data);
+    const int key = n->key;
     if(IS_NULL(n))
     {
         log_msg("Node_Create() failed");
-        return -1;
+        return NULL;
     }
     if(IS_NULL(t->root))
     {
         t->root = n;
-        return 0;
+        return n;
     }
     else
     {
         Node tmp = t->root;
         while(!IS_NULL(tmp))
         {
-            if(Node_GetData(tmp) > data)
+            if(Node_Getkey(tmp) > key)
             {
                 if(IS_NULL(tmp->left))
                 {
-                    Node_SetLeftNode(tmp, n);
+                    Node_SetLeftNode(tmp, n);                    
                     break;
                 }
                 else
@@ -206,7 +206,7 @@ int Tree_AddNode(Tree t, int data)
                     tmp = tmp->left;   
                 }
             }
-            else if(Node_GetData(tmp) < data)
+            else if(Node_Getkey(tmp) < key)
             {
                 if(IS_NULL(tmp->right))
                 {
@@ -220,7 +220,7 @@ int Tree_AddNode(Tree t, int data)
             }
             else
             {
-                return 0;
+                return tmp;
             }
         }
         t->num_elements++;
@@ -232,7 +232,28 @@ int Tree_AddNode(Tree t, int data)
             tmp = tmp->parent;
         }
     }
-    return 1;
+    return n;
+}
+
+Node Tree_Find(Tree t, int key)
+{
+    Node tmp = t->root;
+    while(!IS_NULL(tmp))
+    {
+        if(Node_Getkey(tmp) > key)
+        {
+            tmp = tmp->left;   
+        }
+        else if(Node_Getkey(tmp) < key)
+        {
+            tmp = tmp->right;
+        }
+        else
+        {
+            break;
+        }
+    }
+    return tmp;
 }
 
 void Tree_Print(Tree t)
@@ -251,7 +272,7 @@ void Tree_Print(Tree t)
     {
         Node tmp = queue[back++];
         if(!IS_NULL(tmp))
-            printf(" %3d ", tmp->data);
+            printf(" %3d ", tmp->key);
         else
             printf(" %3d ", 0);
         i++;
@@ -273,7 +294,7 @@ void Tree_Inorder_priv(Node root)
 {
     if(IS_NULL(root)) return;
     Tree_Inorder_priv(root->left);
-    printf(" %3d ", root->data);
+    printf(" %3d ", root->key);
     Tree_Inorder_priv(root->right);
 }
 void Tree_Inorder(Tree t)
@@ -284,7 +305,7 @@ void Tree_Inorder(Tree t)
 void Tree_Preorder_priv(Node root)
 {
     if(IS_NULL(root)) return;
-    printf(" %3d ", root->data);
+    printf(" %3d ", root->key);
     Tree_Preorder_priv(root->left);    
     Tree_Preorder_priv(root->right);
 }
