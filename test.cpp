@@ -2,10 +2,11 @@
 #include <stdlib.h>
 #include "tree.h"
 
+
 int main(int argc, char *argv[])
 {
     int i = 0, count;
-    Tree t;
+    Tree<int> t;
     if(argc == 1)
     {
         log_msg("usage ./a.out <number>");
@@ -15,20 +16,21 @@ int main(int argc, char *argv[])
 
     for(i = count; i >= 1; i--)
     {
-        Node *n = new Node(i), *tmp;
+        Node<int> *n = new Node<int>(i);
+        Node<int> *tmp;
         tmp = t.AddNode(n);
         if(tmp != n)
         {
             delete n;
         }
     }
-	
+    
 
-#if 0 
+#if 1 
     if(argc == 3)
     for(i = count+1; i >= 0; i--)
     {
-        Node *tmp = t.FindNode(i);
+        Node<int> *tmp = t.FindNode(i);
         if(IS_NULL(tmp))
         {
             log_msg("key '%d' not found", i);
@@ -37,7 +39,7 @@ int main(int argc, char *argv[])
     t.PrintTree();
     t.InOrder();
     t.PrintList();
-	log_msg("Height of the tree : %d", t.Height());
+    log_msg("Height of the tree : %d", t.Height());
 #endif    
     return 0;
 }

@@ -2,6 +2,7 @@
 #define _TREE_H_
 #include "util.h"
 
+template <class KEY>
 class Node
 {
     private:
@@ -12,10 +13,10 @@ class Node
         Node *prev, *next;
 
         /*Key and Data associated with it*/
-        int key;
+        KEY key;
 
     public:
-        Node(int k)
+        Node(KEY k)
         {
             height = 0;
             key = k;
@@ -29,7 +30,7 @@ class Node
         }
         
         int GetHeight(void) { return height;}
-        int GetKey(void) { return key; }
+        KEY GetKey(void) { return key; }
         int UpdateHeight(void);
         int GetBalance(void);
 
@@ -38,33 +39,34 @@ class Node
         void SetParentNode(Node *parent) { this->parent = parent; }
         void SetNext(Node *next) { this->next = next; }
         void SetPrev(Node *prev) { this->prev = prev; }
-        Node* GetLeft(void) { return left; }
-        Node* GetRight(void) { return right; }
-        Node* GetParent(void) { return parent; }
-        Node* GetPrev(void) { return prev; }
-        Node* GetNext(void) { return next; }
+        Node<KEY>* GetLeft(void) { return left; }
+        Node<KEY>* GetRight(void) { return right; }
+        Node<KEY>* GetParent(void) { return parent; }
+        Node<KEY>* GetPrev(void) { return prev; }
+        Node<KEY>* GetNext(void) { return next; }
 };
 
+template <class KEY>
 class Tree
 {
     private:
         uint32_t num_elements;
 
         /*The root of the tree node*/
-        Node *root;
+        Node<KEY> *root;
 
         /*The first and the last node of the doubly linked list*/
-        Node *first, *last;
+        Node<KEY> *first, *last;
 
     private:  /*Priv functions*/
-        void RotateLeft(Node *n);
-        void RotateRight(Node *n);
-        void BalanceAt(Node *n);
-	
-	static int  height_priv(Node *n);
-        static void preorder_priv(Node *n);
-        static void inorder_priv(Node *n);
-        static void postorder_priv(Node *n);
+        void RotateLeft(Node<KEY> *n);
+        void RotateRight(Node<KEY> *n);
+        void BalanceAt(Node<KEY> *n);
+    
+    static int  height_priv(Node<KEY> *n);
+        static void preorder_priv(Node<KEY> *n);
+        static void inorder_priv(Node<KEY> *n);
+        static void postorder_priv(Node<KEY> *n);
     public:
         Tree()
         {
@@ -78,13 +80,14 @@ class Tree
          * 1. Key Not present: Adds the node to the tree and returns the added node.
          * 2. Key present: returns the old node with same key and does not add the new node. 
          * */
-        Node* AddNode(Node *n);
+        Node<KEY>* AddNode(Node<KEY> *n);
 
-        /* Finds a given key in the tree. if found returns the node else NULL
+        /* Finds a given node (with key set) in the tree. 
+         * if found returns the node else NULL
          * */
-        Node* FindNode(int key);
+        Node<KEY>* FindNode(KEY key);
 
-	int  Height(void);
+        int  Height(void);
         void PreOrder(void);
         void InOrder(void);
         void PostOrder(void);
