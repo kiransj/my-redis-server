@@ -3,10 +3,18 @@
 #include <string.h>
 #include <stdarg.h>
 
+
 #include "tree.h"
 #include "util.h"
 
-void Node::SetLeftNode(Node *left)
+#include <iostream>
+#include <queue>
+#include <string>
+#include <set>
+using namespace std;
+
+template <class KEY>
+void Node<KEY>::SetLeftNode(Node<KEY> *left)
 {
     if(!IS_NULL(left))
     {
@@ -16,7 +24,8 @@ void Node::SetLeftNode(Node *left)
     UpdateHeight();
 }
 
-void Node::SetRightNode(Node *right)
+template <class KEY>
+void Node<KEY>::SetRightNode(Node<KEY> *right)
 {
     if(!IS_NULL(right))
     {
@@ -26,7 +35,8 @@ void Node::SetRightNode(Node *right)
     UpdateHeight();
 }
 
-int Node::UpdateHeight(void)
+template <class KEY>
+int Node<KEY>::UpdateHeight(void)
 {
     this->height = 0;
     if(!IS_NULL(this->left) && !IS_NULL(this->right))
@@ -46,7 +56,8 @@ int Node::UpdateHeight(void)
     return this->height;
 }
 
-int Node::GetBalance(void)
+template <class KEY>
+int Node<KEY>::GetBalance(void)
 {
     int balance = 0;
 
@@ -65,10 +76,50 @@ int Node::GetBalance(void)
     return balance;
 }
 
-
-void Tree::RotateLeft(Node *n)
+template <class KEY>
+void Node<KEY>::InsertBefore(Node<KEY> *node)
 {
-    Node *p = n->GetParent(), *temp = n->GetRight();
+    Node *prev = this->prev;
+    node->next = this;
+    node->prev = this->prev;
+    this->prev = node;
+    if(!IS_NULL(prev))
+    {
+        prev->next = node;
+    }
+    return;
+}
+
+template <class KEY>
+void Node<KEY>::InsertAfter(Node<KEY> *node)
+{
+    Node *next = this->next;
+    node->next = next;
+    node->prev = this;
+    this->next = node;
+    if(!IS_NULL(next))
+    {
+        next->prev = node;
+    }
+    return;
+}
+
+template <class KEY>
+Tree<KEY>::~Tree()
+{
+    Node<KEY> *tmp = this->first, *old;
+    while(!IS_NULL(tmp))
+    {
+        old = tmp->GetNext();
+        delete tmp;
+        tmp = old;
+    }
+}
+
+template <class KEY>
+void Tree<KEY>::RotateLeft(Node<KEY> *n)
+{
+    Node<KEY> *p = n->GetParent(), *temp = n->GetRight();
     enum {LEFT, RIGHT} side = LEFT;
 
     if(!IS_NULL(p))
@@ -89,9 +140,10 @@ void Tree::RotateLeft(Node *n)
     }
 }
 
-void Tree::RotateRight(Node *n)
+template <class KEY>
+void Tree<KEY>::RotateRight(Node<KEY> *n)
 {
-    Node *p = n->GetParent(), *temp = n->GetLeft();
+    Node<KEY> *p = n->GetParent(), *temp = n->GetLeft();
     enum {LEFT, RIGHT} side = LEFT;
 
     if(!IS_NULL(p))
@@ -112,7 +164,8 @@ void Tree::RotateRight(Node *n)
     }
 }
 
-void Tree::BalanceAt(Node *n)
+template <class KEY>
+void Tree<KEY>::BalanceAt(Node<KEY> *n)
 {
     int bal = n->GetBalance();
     if(bal > 1)
@@ -133,15 +186,18 @@ void Tree::BalanceAt(Node *n)
     }
 }
 
-Node* Tree::AddNode(Node *n)
+template <class KEY>
+Node<KEY>* Tree<KEY>::AddNode(Node<KEY> *n)
 {
     if(IS_NULL(this->root))
     {
-        root = first = last = n;
+        num_keys++;
+        this->root = n;
+        this->last = this->first = n;
         return n;
     }
 
-    Node *tmp = this->root;
+    Node<KEY> *tmp = this->root;
     while(!IS_NULL(tmp))
     {
         if(tmp->GetKey() > n->GetKey())
@@ -149,13 +205,7 @@ Node* Tree::AddNode(Node *n)
             if(IS_NULL(tmp->GetLeft()))
             {
                 tmp->SetLeftNode(n);
-
-                /*now update the doubly linked list*/
-                Node *prev = tmp->GetPrev();
-                if(!IS_NULL(prev)) prev->SetNext(n);
-                tmp->SetPrev(n);
-                n->SetPrev(prev);
-                n->SetNext(tmp);
+                tmp->InsertBefore(n);
                 if(this->first->GetKey() > n->GetKey())
                     this->first = n;
                 break;
@@ -170,13 +220,8 @@ Node* Tree::AddNode(Node *n)
             if(IS_NULL(tmp->GetRight()))
             {
                 tmp->SetRightNode(n);
-
-                /*Now update the doubly linked list*/
-                Node *next = tmp->GetNext();
-                n->SetNext(next);
-                if(!IS_NULL(next)) next->SetPrev(n);
-                tmp->SetNext(n);
-                n->SetPrev(tmp);
+                Node<KEY> *n2 = tmp;
+                n2->InsertAfter(n);
                 if(this->last->GetKey() < n->GetKey())
                     this->last = n;
                 break;
@@ -191,9 +236,9 @@ Node* Tree::AddNode(Node *n)
             /* There is a node already with the same key.
              * Return the old node*/
             return tmp;
-        }       
+        }
     }
-    this->num_elements++;
+    this->num_keys++;
 
     /*Now check if the tree needs rebalancing*/
     tmp = n;
@@ -206,9 +251,10 @@ Node* Tree::AddNode(Node *n)
     return n;   
 }
 
-Node* Tree::FindNode(int key)
+template <class KEY>
+Node<KEY>* Tree<KEY>::FindNode(KEY key)
 {
-    Node *tmp = this->root;
+    Node<KEY> *tmp = this->root;
     while(!IS_NULL(tmp))
     {
         if(tmp->GetKey() > key)
@@ -227,29 +273,17 @@ Node* Tree::FindNode(int key)
     return tmp;
 }
 
-Tree::~Tree()
-{
-    Node *tmp = this->first, *old;
-    while(!IS_NULL(tmp))
-    {
-        old = tmp->GetNext();
-        delete tmp;
-        tmp = old;
-    }
-}
-
-#include <queue>
-using namespace std;
-void Tree::PrintTree(void)
+template <class KEY>
+void Tree<KEY>::PrintTree(void)
 {
     int i = 0, count = 1;
-    std::queue<Node*> myq;
+    std::queue<Node<KEY>*> myq;
     myq.push(this->root);
     while(!myq.empty())
     {
-        Node *tmp = myq.front(); myq.pop();
+        Node<KEY> *tmp = myq.front(); myq.pop();
         if(!IS_NULL(tmp))
-            printf(" %3d ", tmp->GetKey());
+            cout<<" "<<tmp->GetKey()<<" ";
         else
             printf(" %3d ", 0);
         i++;
@@ -267,70 +301,94 @@ void Tree::PrintTree(void)
     }
 }
 
-void Tree::PrintList(void)
+template <class KEY>
+void Tree<KEY>::CheckList(void)
 {
-    Node *tmp = this->first;
-    printf("\n\n");
+    int count = 1;
+    KEY key = 0;
+    Node<KEY> *tmp = this->first;
     while(!IS_NULL(tmp))
-    {        
-        printf(" %4d ", tmp->GetKey());
+    {
+        
+        for(set<string>::iterator it = tmp->GetData().begin(); it != tmp->GetData().end(); ++it)
+        {
+            cout<<count<<"> "<<tmp->GetKey()<<" = "<<*it<<endl;
+            count++;
+        }
+        if(key <= tmp->GetKey())
+            key = tmp->GetKey();
+        else
+        {
+            abort();
+        }
         tmp = tmp->GetNext();
     }
-    printf("\n\n");
+
+    cout<<"Number of keys : "<<num_keys<<endl<<"Number of elements : "<<num_elements<<endl;
 }
 
-void Tree::inorder_priv(Node *n)
+template <class KEY>
+void Tree<KEY>::inorder_priv(Node<KEY> *n)
 {
     if(IS_NULL(n)) return;
     inorder_priv(n->GetLeft());
-    printf(" %4d ", n->GetKey());
+    cout<<" "<<n->GetKey()<<" ";
     inorder_priv(n->GetRight());
 }
-void Tree::InOrder(void)
+template <class KEY>
+void Tree<KEY>::InOrder(void)
 {
     printf("\n\n");
     inorder_priv(root);
     printf("\n\n");
 }
 
-void Tree::preorder_priv(Node *n)
+template <class KEY>
+void Tree<KEY>::preorder_priv(Node<KEY> *n)
 {
     if(IS_NULL(n)) return;
-    printf(" %4d ", n->GetKey());
+    cout<<" "<<n->GetKey()<<" ";
     preorder_priv(n->GetLeft());
     preorder_priv(n->GetRight());
 }
 
-void Tree::PreOrder(void)
+template <class KEY>
+void Tree<KEY>::PreOrder(void)
 {
     printf("\n\n");
     preorder_priv(root);
     printf("\n\n");
 }
 
-void Tree::postorder_priv(Node *n)
+template <class KEY>
+void Tree<KEY>::postorder_priv(Node<KEY> *n)
 {
     if(IS_NULL(n)) return;
     postorder_priv(n->GetRight());
-    printf(" %4d ", n->GetKey());
+    cout<<" "<<n->GetKey()<<" ";
     postorder_priv(n->GetLeft());
 }
 
-void Tree::PostOrder(void)
+template <class KEY>
+void Tree<KEY>::PostOrder(void)
 {
     printf("\n\n");
     postorder_priv(root);
     printf("\n\n");
 }
 
-int Tree::height_priv(Node *n)
+template <class KEY>
+int Tree<KEY>::height_priv(Node<KEY> *n)
 {
-	if(IS_NULL(n))
-		return 0;
-	return 1 + MAX(height_priv(n->GetLeft()), height_priv(n->GetRight()));
+    if(IS_NULL(n))
+        return 0;
+    return 1 + MAX(height_priv(n->GetLeft()), height_priv(n->GetRight()));
 }
 
-int Tree::Height(void)
+template <class KEY>
+int Tree<KEY>::Height(void)
 {
-	return height_priv(this->root);
+    return height_priv(this->root);
 }
+
+template class Tree<int>;
