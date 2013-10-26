@@ -17,6 +17,10 @@ class Node
         /*Data structure needed for Doubly linked list*/
         Node *prev, *next;
 
+        /* data structure which allows to print from random 10 -100.
+         * Used in implementing zrange*/
+        Node *front_link, *back_link;
+        int count;
         /*Key and Data associated with it*/
         KEY            key;
         set<string>    values;
@@ -24,9 +28,10 @@ class Node
 
         Node(KEY k)
         {
-            height = 0;
+            count = height = 0;
             key = k;
             parent = left = right = prev = next = NULL;
+            front_link = back_link = NULL;
         }
 
         ~Node()
@@ -37,8 +42,14 @@ class Node
 
         set<string>& GetData(void) { return values; }
         
-        bool SetData(string data) { return values.insert(data).second; }
+        void UpdateLinks(void);
+        bool SetData(string data) { if(values.insert(data).second == true) {  UpdateLinks(); return true;} return false; }
+
+
+        Node<KEY>* GetFrontLink(void) { return front_link; }
+        Node<KEY>* GetBackLink(void) { return back_link; }
         
+        int GetCount(void) { return count; }
         int GetHeight(void) { return height;}
         KEY GetKey(void) { return key; }
         int UpdateHeight(void);
@@ -104,6 +115,9 @@ class Tree
          * */
         Node<KEY>* FindNode(KEY key);
 
+        /*
+         * */
+        Node<KEY>* GetNthElement(const int nth, int *rth);
         int GetKeys(void) { return num_keys; }
         int  Height(void);
         void PreOrder(void);

@@ -36,6 +36,68 @@ void Node<KEY>::SetRightNode(Node<KEY> *right)
 }
 
 template <class KEY>
+void Node<KEY>::UpdateLinks(void)
+{
+    Node<KEY> *first = NULL;
+    if(IS_NULL(this->prev) && IS_NULL(this->next))
+    {
+        this->count++;
+        return;
+    }
+    if(!IS_NULL(this->prev))
+    {
+        Node<KEY> *n = this;
+        while(n->count == 0)
+        {
+            n = n->prev;
+        }
+        ASSERT(n->count == 0);
+        n->count++;
+        first = n;
+    }
+    else if(this->count == 0)
+    {
+        this->count = this->next->count+1;
+        this->next->count = 0;
+        this->front_link = this->next->front_link;
+        if(!IS_NULL(this->next->front_link))
+            this->next->front_link->back_link = this;
+        this->next->front_link = this->next->back_link = NULL;
+        first = this;
+    }
+    else
+    {
+        this->count++;
+        first = this;
+    }
+
+    if(IS_NULL(this->next))
+    {
+        first->front_link = this;
+        this->back_link = first;
+    }
+
+    if(first->count == 200)    
+    {
+        unsigned int tmp_count = first->values.size();
+        Node<KEY> *tmp = first;
+        while(tmp_count < 100)
+        {
+            tmp = tmp->next;
+            tmp_count += tmp->values.size();
+        }
+        tmp = tmp->next;
+        tmp->back_link = first;
+        if(!IS_NULL(first->front_link))
+            first->front_link->back_link = tmp;
+        tmp->front_link = first->front_link;
+        first->front_link = tmp;
+        tmp->count = first->count - tmp_count;
+        first->count = tmp_count;
+    }
+}
+
+template <class KEY>
 int Node<KEY>::UpdateHeight(void)
 {
     this->height = 0;
@@ -193,10 +255,10 @@ Node<KEY>* Tree<KEY>::AddNode(const KEY key, const string data)
     if(IS_NULL(this->root))
     {
         num_keys++;
-        num_elements++;
         this->root = n;
         this->last = this->first = n;
-        n->SetData(data);
+        if(n->SetData(data))
+            num_elements++;
         return n;
     }
 
@@ -236,8 +298,8 @@ Node<KEY>* Tree<KEY>::AddNode(const KEY key, const string data)
         }
         else
         {
-            num_elements++;
-            tmp->SetData(data);
+            if(tmp->SetData(data))
+                num_elements++;
             delete n;
             /* There is a node already with the same key.
              * Return the old node*/
@@ -245,8 +307,9 @@ Node<KEY>* Tree<KEY>::AddNode(const KEY key, const string data)
         }
     }
     this->num_keys++;
-    this->num_elements++;
-    n->SetData(data);
+    if(n->SetData(data))
+        this->num_elements++;
+
     /*Now check if the tree needs rebalancing*/
     tmp = n;
     while(!IS_NULL(tmp))
@@ -311,15 +374,16 @@ void Tree<KEY>::PrintTree(void)
 template <class KEY>
 void Tree<KEY>::CheckList(void)
 {
-    int count = 1;
+    uint32_t count = 1, tot = 0;
     KEY key = 0;
     Node<KEY> *tmp = this->first;
     while(!IS_NULL(tmp))
     {
-        
+        int c = tmp->GetCount();
+        tot += c;
         for(set<string>::iterator it = tmp->GetData().begin(); it != tmp->GetData().end(); ++it)
         {
-            cout<<count<<"> "<<tmp->GetKey()<<" = "<<*it<<endl;
+            cout<<count<<"> "<<tmp->GetKey()<<" = "<<*it<<" == "<<c<<"  "<<endl;
             count++;
         }
         if(key <= tmp->GetKey())
@@ -331,7 +395,12 @@ void Tree<KEY>::CheckList(void)
         tmp = tmp->GetNext();
     }
 
-    cout<<"Number of keys : "<<num_keys<<endl<<"Number of elements : "<<num_elements<<endl;
+    if(num_elements != tot)
+    {
+        abort();
+    }
+
+    cout<<"Number of keys : "<<num_keys<<endl<<"Number of elements : "<<num_elements<<"==="<<tot<<endl;
 }
 
 template <class KEY>
@@ -396,6 +465,34 @@ template <class KEY>
 int Tree<KEY>::Height(void)
 {
     return height_priv(this->root);
+}
+
+template <class KEY>
+Node<KEY>* Tree<KEY>::GetNthElement(const int nth, int *rth)
+{
+    if(nth >= (int)num_elements)
+    {
+        log_msg("nth'%d' element is greater than total num element '%u'", nth, num_elements);
+        return NULL;
+    }
+    int tmp_count = this->first->GetCount();
+    Node<KEY> *n = this->first;
+    while(tmp_count <= nth)
+    {
+        n = n->GetFrontLink();
+        tmp_count += n->GetCount();
+    }
+    tmp_count -= n->GetCount();
+    tmp_count += n->GetData().size();
+    while(tmp_count < nth)
+    {
+        n = n->GetNext();
+        tmp_count += n->GetData().size();
+    }
+    tmp_count -= n->GetData().size();
+//    n = n->GetPrev(); 
+    *rth = tmp_count;
+    return n;
 }
 
 template class Tree<int>;

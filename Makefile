@@ -1,5 +1,5 @@
 CPP:=g++
-CFLAGS := -g
+CFLAGS := -g3
 #CFLAGS := -Os -s -ffunction-sections -fdata-sections 
 WARNINGS:= -Wall
 
