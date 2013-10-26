@@ -8,42 +8,33 @@ using namespace std;
 int main(int argc, char *argv[])
 {
     int i = 0, count;
-    Tree<string> t;
-    if(argc == 1)
-    {
-        log_msg("usage ./a.out <number>");
-        return -1;
-    }
-    count = atoi(argv[1]);
+    Tree<int> t;
+
+    count = argc > 1 ? atoi(argv[1]) : 100;
 
     for(i = count; i >= 1; i--)
     {
+        int key = random() % 3214300 + 1;
         char buffer[1024];
-        snprintf(buffer, 1024, "'%d'", i); 
-        Node<string> *n = new Node<string>(string(buffer)), *tmp;
+        snprintf(buffer, 1024, "'%d'", key); 
+        Node<int> *n = new Node<int>(key), *tmp;        
         tmp = t.AddNode(n);
         if(tmp != n)
-        {
+        {            
             delete n;
         }
+        tmp->SetData(string(buffer));
+        t.IncNumElements();
     }
-
-#if 0 
-    if(argc == 3)
-    for(i = count+1; i >= 0; i--)
-    {
-        char buffer[1024];
-        snprintf(buffer, 1024, "'%d'", i); 
-        Node<string> *tmp = t.FindNode(string(buffer));
-        if(IS_NULL(tmp))
-        {
-            log_msg("key '%d' not found", i);
-        }
-    }    
-    t.PrintTree();
-    t.InOrder();
-    t.PrintList();
-    log_msg("Height of the tree : %d", t.Height());
-#endif    
+     
+    Node<int> *n = new Node<int>(3187889), *tmp;
+    tmp = t.AddNode(n);
+    if(tmp != n)
+    {            
+        delete n;
+    }
+    tmp->SetData(string("kiran"));
+    t.IncNumElements();
+    //t.CheckList();
     return 0;
 }

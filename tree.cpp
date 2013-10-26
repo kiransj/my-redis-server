@@ -3,9 +3,15 @@
 #include <string.h>
 #include <stdarg.h>
 
-#include <iostream>
+
 #include "tree.h"
 #include "util.h"
+
+#include <iostream>
+#include <queue>
+#include <string>
+#include <set>
+using namespace std;
 
 template <class KEY>
 void Node<KEY>::SetLeftNode(Node<KEY> *left)
@@ -68,6 +74,34 @@ int Node<KEY>::GetBalance(void)
         balance = (this->right->height + 1) * (-1);
     }   
     return balance;
+}
+
+template <class KEY>
+void Node<KEY>::InsertBefore(Node<KEY> *node)
+{
+    Node *prev = this->prev;
+    node->next = this;
+    node->prev = this->prev;
+    this->prev = node;
+    if(!IS_NULL(prev))
+    {
+        prev->next = node;
+    }
+    return;
+}
+
+template <class KEY>
+void Node<KEY>::InsertAfter(Node<KEY> *node)
+{
+    Node *next = this->next;
+    node->next = next;
+    node->prev = this;
+    this->next = node;
+    if(!IS_NULL(next))
+    {
+        next->prev = node;
+    }
+    return;
 }
 
 template <class KEY>
@@ -157,7 +191,9 @@ Node<KEY>* Tree<KEY>::AddNode(Node<KEY> *n)
 {
     if(IS_NULL(this->root))
     {
-        root = first = last = n;
+        num_keys++;
+        this->root = n;
+        this->last = this->first = n;
         return n;
     }
 
@@ -169,13 +205,7 @@ Node<KEY>* Tree<KEY>::AddNode(Node<KEY> *n)
             if(IS_NULL(tmp->GetLeft()))
             {
                 tmp->SetLeftNode(n);
-
-                /*now update the doubly linked list*/
-                Node<KEY> *prev = tmp->GetPrev();
-                if(!IS_NULL(prev)) prev->SetNext(n);
-                tmp->SetPrev(n);
-                n->SetPrev(prev);
-                n->SetNext(tmp);
+                tmp->InsertBefore(n);
                 if(this->first->GetKey() > n->GetKey())
                     this->first = n;
                 break;
@@ -190,13 +220,8 @@ Node<KEY>* Tree<KEY>::AddNode(Node<KEY> *n)
             if(IS_NULL(tmp->GetRight()))
             {
                 tmp->SetRightNode(n);
-
-                /*Now update the doubly linked list*/
-                Node<KEY> *next = tmp->GetNext();
-                n->SetNext(next);
-                if(!IS_NULL(next)) next->SetPrev(n);
-                tmp->SetNext(n);
-                n->SetPrev(tmp);
+                Node<KEY> *n2 = tmp;
+                n2->InsertAfter(n);
                 if(this->last->GetKey() < n->GetKey())
                     this->last = n;
                 break;
@@ -211,9 +236,9 @@ Node<KEY>* Tree<KEY>::AddNode(Node<KEY> *n)
             /* There is a node already with the same key.
              * Return the old node*/
             return tmp;
-        }       
+        }
     }
-    this->num_elements++;
+    this->num_keys++;
 
     /*Now check if the tree needs rebalancing*/
     tmp = n;
@@ -247,21 +272,7 @@ Node<KEY>* Tree<KEY>::FindNode(KEY key)
     }
     return tmp;
 }
-#if 0
-template <class KEY>
-Tree<KEY>::~Tree()
-{
-    Node<KEY> *tmp = this->first, *old;
-    while(!IS_NULL(tmp))
-    {
-        old = tmp->GetNext();
-        delete tmp;
-        tmp = old;
-    }
-}
-#endif
-#include <queue>
-using namespace std;
+
 template <class KEY>
 void Tree<KEY>::PrintTree(void)
 {
@@ -291,16 +302,29 @@ void Tree<KEY>::PrintTree(void)
 }
 
 template <class KEY>
-void Tree<KEY>::PrintList(void)
+void Tree<KEY>::CheckList(void)
 {
+    int count = 1;
+    KEY key = 0;
     Node<KEY> *tmp = this->first;
-    printf("\n\n");
     while(!IS_NULL(tmp))
-    {        
-        cout<<" "<<tmp->GetKey()<<" ";
+    {
+        
+        for(set<string>::iterator it = tmp->GetData().begin(); it != tmp->GetData().end(); ++it)
+        {
+            cout<<count<<"> "<<tmp->GetKey()<<" = "<<*it<<endl;
+            count++;
+        }
+        if(key <= tmp->GetKey())
+            key = tmp->GetKey();
+        else
+        {
+            abort();
+        }
         tmp = tmp->GetNext();
     }
-    printf("\n\n");
+
+    cout<<"Number of keys : "<<num_keys<<endl<<"Number of elements : "<<num_elements<<endl;
 }
 
 template <class KEY>
@@ -368,7 +392,3 @@ int Tree<KEY>::Height(void)
 }
 
 template class Tree<int>;
-
-#include <string>
-using namespace std;
-template class Tree<string>;
