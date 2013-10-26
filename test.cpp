@@ -2,11 +2,31 @@
 #include <stdlib.h>
 #include "tree.h"
 
+#include "zlist.h"
+
 #include <iostream>
 #include <string>
 using namespace std;
 
 int main(int argc, char *argv[])
+{
+    ZList zl;
+    int count = argc == 2 ? atoi(argv[1]) : 1000;
+
+    for(int i = 0; i < count; i++)
+    {
+        char buffer[64];
+        snprintf(buffer, 64, "N%d", i);
+        zl.ZADD(i, buffer);
+    }
+    cout<<"ZCARD MYSET = "<<zl.ZCARD()<<endl;
+    cout<<"ZCOUNT MYSET = "<<zl.ZCOUNT(9, 20)<<endl;
+    cout<<"ZRANK MYSET = "<<zl.ZRANK("N0")<<endl;
+    zl.check();
+    return 0;
+}
+
+int main1(int argc, char *argv[])
 {
     int tmp = 0;
     int i = 0, count;
@@ -31,8 +51,6 @@ int main(int argc, char *argv[])
     t.AddNode(0, "Zero1");
     t.AddNode(0, "Zero2");
     t.AddNode(0, "Zero3");
-//    t.AddNode(3187889, "kiran");
-//    t.AddNode(3287889, "kiran1");
     t.CheckList();
 
     int rt = 0;

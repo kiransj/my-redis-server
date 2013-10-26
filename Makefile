@@ -9,6 +9,7 @@ OUTPUT   := ./a.out
 CPP_FILES := 
 CPP_FILES += util.cpp
 CPP_FILES += tree.cpp
+CPP_FILES += zlist.cpp
 CPP_FILES += test.cpp
 
 CPP_OBJECTS := $(CPP_FILES:.cpp=.o)    

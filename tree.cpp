@@ -77,7 +77,7 @@ void Node<KEY>::UpdateLinks(void)
         this->back_link = first;
     }
 
-    if(first->count == 200)    
+    if(first->count >= 200)    
     {
         unsigned int tmp_count = first->values.size();
         Node<KEY> *tmp = first;
@@ -344,6 +344,33 @@ Node<KEY>* Tree<KEY>::FindNode(KEY key)
 }
 
 template <class KEY>
+Node<KEY>* Tree<KEY>::FindNear(KEY key)
+{
+    Node<KEY> *tmp = this->root, *tmp1;
+    while(!IS_NULL(tmp))
+    {
+        tmp1 = tmp;
+        if(tmp->GetKey() > key)
+        {
+            tmp = tmp->GetLeft();
+        }
+        else if(tmp->GetKey() < key)
+        {
+
+            tmp = tmp->GetRight();
+        }
+        else
+        {
+            return tmp;
+        }    
+    }
+
+    while(!IS_NULL(tmp1) && (key > tmp1->GetKey()))
+        tmp1 = tmp->GetNext();
+    return tmp1;
+}
+
+template <class KEY>
 void Tree<KEY>::PrintTree(void)
 {
     int i = 0, count = 1;
@@ -490,8 +517,36 @@ Node<KEY>* Tree<KEY>::GetNthElement(const int nth, int *rth)
         tmp_count += n->GetData().size();
     }
     tmp_count -= n->GetData().size();
-//    n = n->GetPrev(); 
     *rth = tmp_count;
+    return n;
+}
+
+
+template <class KEY>
+Node<KEY>* Tree<KEY>::GetKeyNodeAndNumber(const KEY key, int *rank)
+{
+    *rank = 0;
+    Node<KEY>* n = FindNode(key);
+    if(!IS_NULL(n))
+    {
+        while(!IS_NULL(n->GetPrev()))
+        {
+            n = n->GetPrev();
+            *rank += n->GetData().size();
+            if(!IS_NULL(n->GetFrontLink()))
+            {
+                break;
+            }
+        }
+        if(n->GetCount() != 0)
+        {
+            while(!IS_NULL(n->GetBackLink()))
+            {
+                n = n->GetBackLink();
+                *rank += n->GetCount();
+            }
+        }
+    }
     return n;
 }
 

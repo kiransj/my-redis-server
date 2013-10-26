@@ -89,7 +89,6 @@ class Tree
         
         void SetLast(Node<KEY> *n);
         void SetFirst(Node<KEY> *n);
-        int CheckAndInsert(Node<KEY> *n1, Node<KEY> *n2);
         static int  height_priv(Node<KEY> *n);
         static void preorder_priv(Node<KEY> *n);
         static void inorder_priv(Node<KEY> *n);
@@ -114,7 +113,9 @@ class Tree
          * if found returns the node else NULL
          * */
         Node<KEY>* FindNode(KEY key);
+        Node<KEY>* FindNear(KEY key);
 
+        Node<KEY>* GetKeyNodeAndNumber(const KEY key, int *rank);
         /*
          * */
         Node<KEY>* GetNthElement(const int nth, int *rth);
