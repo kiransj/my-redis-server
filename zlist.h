@@ -10,6 +10,11 @@ class ZList
         unsigned int count;
         Tree<int> tr;
         map<string, int> dict;
+
+        bool iterator_active;
+        Node<int> *n;
+        set<string>::iterator ii;
+        int Min, Max;
     public:
         ZList()  { count = 0; }
         ~ZList() { }
@@ -25,4 +30,6 @@ class ZList
         int ZREVRANGE(int min, int max, bool WITHSCORES);
 
         void check(void) { tr.CheckList(); }
+
+        int GetNext(int *key, char *str, int str_len);
 };

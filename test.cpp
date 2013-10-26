@@ -29,7 +29,15 @@ int main(int argc, char *argv[])
     cout<<"ZRANK MYSET = "<<zl.ZRANK("N0")<<endl;
     zl.check();
     cout<<endl<<endl<<"ZRange(0, 30)"<<endl;
-    zl.ZRANGE(0, 30, false);
+    if(zl.ZRANGE(0, 30, false))
+    {
+        char str[1024];
+        int key = 0, count = 0;
+        while(zl.GetNext(&key, str, 1024))
+        {
+            cout<<count<<"> "<<key<<" = "<<str<<endl;
+        }
+    }
     return 0;
 }
 

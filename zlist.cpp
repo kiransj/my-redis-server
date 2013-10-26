@@ -67,14 +67,16 @@ int ZList::ZRANK(string data)
 
 int ZList::ZRANGE(int min, int max, bool WITHSCORES)
 {
-    int rth = 0, count = 1;
-    Node<int> *n = tr.GetNthElement(min, &rth);
+    int rth = 0 ;
+    n = tr.GetNthElement(min, &rth);
     
     if(rth)
     rth = min - rth - 1;
+    Min = min;
+    Max = max;
     while(!IS_NULL(n))
     {
-        for(set<string>::iterator ii = n->GetData().begin(); ii != n->GetData().end(); ++ii)
+        for(ii = n->GetData().begin(); ii != n->GetData().end(); ++ii)
         {
             if(min == max)
             {
@@ -82,8 +84,7 @@ int ZList::ZRANGE(int min, int max, bool WITHSCORES)
             }
             if(!rth)
             {
-                cout<<count<<"> "<<*ii<<endl;
-                min++;
+                return 1;
             }
             else
             {
@@ -93,4 +94,34 @@ int ZList::ZRANGE(int min, int max, bool WITHSCORES)
         n = n->GetNext();
     }
     return 0; 
+}
+
+int ZList::GetNext(int *key, char *str, int str_len)
+{
+    if(IS_NULL(n) || (Min == Max)) 
+        return 0;
+
+    if(ii != n->GetData().end())
+    {
+        *key = n->GetKey();
+        Min++;
+        snprintf(str, str_len, "%s", ii->c_str());
+        ii++;
+        return 1;
+    }
+
+    n = n->GetNext();
+    if(!IS_NULL(n))
+    {
+        ii = n->GetData().begin();
+        if(ii != n->GetData().end())
+        {
+            *key = n->GetKey();
+            Min++;
+            snprintf(str, str_len, "%s", ii->c_str());
+            ++ii;
+            return 1;
+        }
+    }
+    return 0;
 }
