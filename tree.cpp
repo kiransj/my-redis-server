@@ -187,20 +187,23 @@ void Tree<KEY>::BalanceAt(Node<KEY> *n)
 }
 
 template <class KEY>
-Node<KEY>* Tree<KEY>::AddNode(Node<KEY> *n)
+Node<KEY>* Tree<KEY>::AddNode(const KEY key, const string data)
 {
+    Node<KEY> *n = new Node<KEY>(key);
     if(IS_NULL(this->root))
     {
         num_keys++;
+        num_elements++;
         this->root = n;
         this->last = this->first = n;
+        n->SetData(data);
         return n;
     }
 
     Node<KEY> *tmp = this->root;
     while(!IS_NULL(tmp))
     {
-        if(tmp->GetKey() > n->GetKey())
+        if(tmp->GetKey() > key)
         {
             if(IS_NULL(tmp->GetLeft()))
             {
@@ -233,13 +236,17 @@ Node<KEY>* Tree<KEY>::AddNode(Node<KEY> *n)
         }
         else
         {
+            num_elements++;
+            tmp->SetData(data);
+            delete n;
             /* There is a node already with the same key.
              * Return the old node*/
             return tmp;
         }
     }
     this->num_keys++;
-
+    this->num_elements++;
+    n->SetData(data);
     /*Now check if the tree needs rebalancing*/
     tmp = n;
     while(!IS_NULL(tmp))

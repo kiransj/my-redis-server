@@ -91,14 +91,13 @@ class Tree
             num_elements = 0;
         }
         int GetNumElements(void) { return num_elements; }
-        int IncNumElements(void) { return ++num_elements; }
         ~Tree();
         /* This function adds a given node (the node has a key) to the tree. 
          * The different cases handled.
          * 1. Key Not present: Adds the node to the tree and returns the added node.
          * 2. Key present: returns the old node with same key and does not add the new node. 
          * */
-        Node<KEY>* AddNode(Node<KEY> *n);
+        Node<KEY>* AddNode(const KEY n, const string data);
 
         /* Finds a given node (with key set) in the tree. 
          * if found returns the node else NULL
