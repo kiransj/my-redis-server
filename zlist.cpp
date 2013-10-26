@@ -1,4 +1,8 @@
 #include <zlist.h>
+
+#include <set>
+#include <iostream>
+using namespace std;
 int ZList::ZADD(const int key, const string data)
 {
     int *tmp = &dict[data];
@@ -61,3 +65,32 @@ int ZList::ZRANK(string data)
     return rank;
 }
 
+int ZList::ZRANGE(int min, int max, bool WITHSCORES)
+{
+    int rth = 0, count = 1;
+    Node<int> *n = tr.GetNthElement(min, &rth);
+    
+    if(rth)
+    rth = min - rth - 1;
+    while(!IS_NULL(n))
+    {
+        for(set<string>::iterator ii = n->GetData().begin(); ii != n->GetData().end(); ++ii)
+        {
+            if(min == max)
+            {
+                return 0;
+            }
+            if(!rth)
+            {
+                cout<<count<<"> "<<*ii<<endl;
+                min++;
+            }
+            else
+            {
+                --rth;
+            }
+        }
+        n = n->GetNext();
+    }
+    return 0; 
+}

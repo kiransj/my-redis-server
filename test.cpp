@@ -18,11 +18,18 @@ int main(int argc, char *argv[])
         char buffer[64];
         snprintf(buffer, 64, "N%d", i);
         zl.ZADD(i, buffer);
+        if(i % 2 == 0)
+        {
+            snprintf(buffer, 64, "N-%d", i);
+            zl.ZADD(i, buffer);
+        }
     }
     cout<<"ZCARD MYSET = "<<zl.ZCARD()<<endl;
     cout<<"ZCOUNT MYSET = "<<zl.ZCOUNT(9, 20)<<endl;
     cout<<"ZRANK MYSET = "<<zl.ZRANK("N0")<<endl;
     zl.check();
+    cout<<endl<<endl<<"ZRange(0, 30)"<<endl;
+    zl.ZRANGE(0, 30, false);
     return 0;
 }
 

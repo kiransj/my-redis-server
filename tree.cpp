@@ -502,22 +502,44 @@ Node<KEY>* Tree<KEY>::GetNthElement(const int nth, int *rth)
         log_msg("nth'%d' element is greater than total num element '%u'", nth, num_elements);
         return NULL;
     }
-    int tmp_count = this->first->GetCount();
-    Node<KEY> *n = this->first;
-    while(tmp_count <= nth)
+    Node<KEY> *n = NULL;
+    if(nth < (int)(num_elements/2))
     {
-        n = n->GetFrontLink();
-        tmp_count += n->GetCount();
-    }
-    tmp_count -= n->GetCount();
-    tmp_count += n->GetData().size();
-    while(tmp_count < nth)
-    {
-        n = n->GetNext();
+        int tmp_count = this->first->GetCount();
+        n = this->first;
+        while(tmp_count <= nth)
+        {
+            n = n->GetFrontLink();
+            tmp_count += n->GetCount();
+        }
+        tmp_count -= n->GetCount();
         tmp_count += n->GetData().size();
+        while(tmp_count < nth)
+        {
+            n = n->GetNext();
+            tmp_count += n->GetData().size();
+        }
+        tmp_count -= n->GetData().size();
+        *rth = tmp_count;
     }
-    tmp_count -= n->GetData().size();
-    *rth = tmp_count;
+    else
+    {
+        int tmp_count = num_elements;
+        n = this->last;
+        while(tmp_count >= nth)
+        {
+            n = n->GetBackLink();
+            tmp_count -= n->GetCount(); 
+        }
+        while(tmp_count < nth)
+        {
+            tmp_count += n->GetData().size();
+            n = n->GetNext();
+        }
+        n = n->GetPrev();
+        tmp_count -= n->GetData().size();
+        *rth = tmp_count;
+    }
     return n;
 }
 
