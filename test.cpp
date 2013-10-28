@@ -11,31 +11,39 @@ using namespace std;
 int main(int argc, char *argv[])
 {
     ZList zl;
-    int count = argc == 2 ? atoi(argv[1]) : 1000;
+    int count = argc >= 2 ? atoi(argv[1]) : 1000;
 
     for(int i = 0; i < count; i++)
     {
+        int key = random() % 3214600 + 1;
         char buffer[64];
-        snprintf(buffer, 64, "N%d", i);
-        zl.ZADD(i, buffer);
-        if(i % 2 == 0)
+        snprintf(buffer, 64, "N%d", key);
+        zl.ZADD(key, buffer);
+        if(key % 7 == 0)
         {
-            snprintf(buffer, 64, "N-%d", i);
-            zl.ZADD(i, buffer);
+            snprintf(buffer, 64, "N-%d", key);
+            zl.ZADD(key, buffer);
         }
     }
+    zl.ZADD(56394, "kiran");
+    zl.ZADD(898784, "ind");
+    zl.ZADD(898784, "pak");
     cout<<"ZCARD MYSET = "<<zl.ZCARD()<<endl;
-    cout<<"ZCOUNT MYSET = "<<zl.ZCOUNT(9, 20)<<endl;
-    cout<<"ZRANK MYSET = "<<zl.ZRANK("N0")<<endl;
+    cout<<"ZCOUNT MYSET = "<<zl.ZCOUNT(0, 100000)<<endl;
+    cout<<"ZRANK MYSET = "<<zl.ZRANK("N0940037")<<endl;
     zl.check();
-    cout<<endl<<endl<<"ZRange(0, 30)"<<endl;
-    if(zl.ZRANGE(0, 30, false))
+    if(argc == 4)
     {
-        char str[1024];
-        int key = 0, count = 0;
-        while(zl.GetNext(&key, str, 1024))
+        int min = atoi(argv[2]), max = atoi(argv[3]);
+        cout<<endl<<endl<<"ZRange("<<min<<", "<<max<<")"<<endl;
+        if(zl.ZRANGE(min, max, false))
         {
-            cout<<count<<"> "<<key<<" = "<<str<<endl;
+            char str[1024];
+            int key = 0, count = 0;
+            while(zl.GetNext(&key, str, 1024))
+            {
+                cout<<++count<<"> "<<key<<" = "<<str<<endl;
+            }
         }
     }
     return 0;

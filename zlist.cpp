@@ -67,21 +67,37 @@ int ZList::ZRANK(string data)
 
 int ZList::ZRANGE(int min, int max, bool WITHSCORES)
 {
-    int rth = 0 ;
+    
+    int rth = 0;
+
+    if(min < 0)
+        min = tr.GetNumElements() + min;
+
+    if(max < 0)
+        max = tr.GetNumElements() + max;
+
+    if(max < min)
+    {
+        log_msg("Max (%d) < Min(%d) hence zrange failed", max, min);
+        return 0;
+    }
+
     n = tr.GetNthElement(min, &rth);
     
-    if(rth)
-    rth = min - rth - 1;
+    rth = min - rth;
+
     Min = min;
     Max = max;
     while(!IS_NULL(n))
     {
         for(ii = n->GetData().begin(); ii != n->GetData().end(); ++ii)
         {
+#if 0
             if(min == max)
             {
                 return 0;
             }
+#endif
             if(!rth)
             {
                 return 1;
@@ -98,8 +114,12 @@ int ZList::ZRANGE(int min, int max, bool WITHSCORES)
 
 int ZList::GetNext(int *key, char *str, int str_len)
 {
-    if(IS_NULL(n) || (Min == Max)) 
+    if(IS_NULL(n) || (Min > Max)) 
+    {
+        Min = Max = 0;
+        n = NULL;
         return 0;
+    }
 
     if(ii != n->GetData().end())
     {

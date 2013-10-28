@@ -514,7 +514,7 @@ Node<KEY>* Tree<KEY>::GetNthElement(const int nth, int *rth)
         }
         tmp_count -= n->GetCount();
         tmp_count += n->GetData().size();
-        while(tmp_count < nth)
+        while(tmp_count <= nth)
         {
             n = n->GetNext();
             tmp_count += n->GetData().size();
