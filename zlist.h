@@ -7,9 +7,11 @@ using namespace std;
 class ZList
 {
     private:
+        /* used for commands z* */
         unsigned int count;
         Tree<int> tr;
         map<string, int> dict;
+
 
         bool iterator_active;
         Node<int> *n;
