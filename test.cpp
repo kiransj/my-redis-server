@@ -8,7 +8,7 @@
 #include <string>
 using namespace std;
 
-int main(int argc, char *argv[])
+int main1(int argc, char *argv[])
 {
     ZList zl;
     int count = argc >= 2 ? atoi(argv[1]) : 1000;
@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-int main1(int argc, char *argv[])
+int main2(int argc, char *argv[])
 {
     int tmp = 0;
     int i = 0, count;
