@@ -366,7 +366,8 @@ Node<KEY>* Tree<KEY>::FindNear(KEY key)
     }
 
     while(!IS_NULL(tmp1) && (key > tmp1->GetKey()))
-        tmp1 = tmp->GetNext();
+        tmp1 = tmp1->GetNext();
+
     return tmp1;
 }
 

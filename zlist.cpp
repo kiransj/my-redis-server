@@ -65,6 +65,12 @@ int ZList::ZRANK(string data)
     return rank;
 }
 
+int ZList::ZSCORE(string data)
+{
+    int score = dict[data];
+    return score;
+}
+
 int ZList::ZRANGE(int min, int max, bool WITHSCORES)
 {
     
@@ -92,14 +98,9 @@ int ZList::ZRANGE(int min, int max, bool WITHSCORES)
     {
         for(ii = n->GetData().begin(); ii != n->GetData().end(); ++ii)
         {
-#if 0
-            if(min == max)
-            {
-                return 0;
-            }
-#endif
             if(!rth)
             {
+                count_by_key = false;
                 return 1;
             }
             else
@@ -110,6 +111,21 @@ int ZList::ZRANGE(int min, int max, bool WITHSCORES)
         n = n->GetNext();
     }
     return 0; 
+}
+
+
+int ZList::ZRANGEBYSCORE(int min, int max, bool WITHSCORES)
+{
+    n = tr.FindNear(min);
+    if(IS_NULL(n))
+    {
+        return 0;
+    }
+    Min = n->GetKey();
+    Max = max;
+    count_by_key = true;
+    ii = n->GetData().begin(); 
+    return 1;
 }
 
 int ZList::GetNext(int *key, char *str, int str_len)
@@ -124,7 +140,8 @@ int ZList::GetNext(int *key, char *str, int str_len)
     if(ii != n->GetData().end())
     {
         *key = n->GetKey();
-        Min++;
+        if(count_by_key == false)
+            Min++;
         snprintf(str, str_len, "%s", ii->c_str());
         ii++;
         return 1;
@@ -133,11 +150,23 @@ int ZList::GetNext(int *key, char *str, int str_len)
     n = n->GetNext();
     if(!IS_NULL(n))
     {
+        if(count_by_key == true)
+        {
+            Min = n->GetKey();
+            if(Min > Max)
+            {
+                n = NULL;
+                return 0;
+            }
+        }
         ii = n->GetData().begin();
         if(ii != n->GetData().end())
         {
             *key = n->GetKey();
-            Min++;
+            if(count_by_key == false)
+            {
+                Min++;
+            }
             snprintf(str, str_len, "%s", ii->c_str());
             ++ii;
             return 1;
@@ -145,3 +174,4 @@ int ZList::GetNext(int *key, char *str, int str_len)
     }
     return 0;
 }
+

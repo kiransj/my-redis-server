@@ -15,6 +15,7 @@ class ZList
         Node<int> *n;
         set<string>::iterator ii;
         int Min, Max;
+        bool count_by_key;
     public:
         ZList()  { count = 0; }
         ~ZList() { }
@@ -25,9 +26,10 @@ class ZList
 
         /*Return the idx in the sorted list i.e. return the link number*/
         int ZRANK(string data);
+        /*Returns the score of the given data*/
         int ZSCORE(string data);
+
         int ZRANGEBYSCORE(int min, int max, bool WITHSCORES);
-        int ZREVRANGE(int min, int max, bool WITHSCORES);
 
         void check(void) { tr.CheckList(); }
 

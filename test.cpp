@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
     {
         int min = atoi(argv[2]), max = atoi(argv[3]);
         cout<<endl<<endl<<"ZRange("<<min<<", "<<max<<")"<<endl;
-        if(zl.ZRANGE(min, max, false))
+        if(zl.ZRANGEBYSCORE(min, max, false))
         {
             char str[1024];
             int key = 0, count = 0;
