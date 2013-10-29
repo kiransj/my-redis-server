@@ -7,9 +7,17 @@ using namespace std;
 class ZList
 {
     private:
+        /* used for commands z* */
         unsigned int count;
         Tree<int> tr;
         map<string, int> dict;
+
+
+        bool iterator_active;
+        Node<int> *n;
+        set<string>::iterator ii;
+        int Min, Max;
+        bool count_by_key;
     public:
         ZList()  { count = 0; }
         ~ZList() { }
@@ -20,7 +28,12 @@ class ZList
 
         /*Return the idx in the sorted list i.e. return the link number*/
         int ZRANK(string data);
+        /*Returns the score of the given data*/
         int ZSCORE(string data);
+
         int ZRANGEBYSCORE(int min, int max, bool WITHSCORES);
-        int ZREVRANGE(int min, int max, bool WITHSCORES);
+
+        void check(void) { tr.CheckList(); }
+
+        int GetNext(int *key, char *str, int str_len);
 };
