@@ -5,6 +5,8 @@
 #include "keyvalue.h"
 #include "zlist.h"
 
+#include "redis.h"
+
 #include <iostream>
 #include <string>
 using namespace std;
@@ -131,10 +133,49 @@ int test_keyvalue(int argc, char *argv[])
 #define POLL_ERR      (-1)
 #define POLL_EXPIRE   (0)
 
-int ParseText(const char *buf, const int len)
+string* ParseText(const char *buf, const int len, int *count)
 {
-    log_msg("TEXT\n%s", buf);
-    return 0;
+    string *s = NULL;
+    int num_args = 0;
+    int idx = 0;
+//    log_msg("TEXT\n%s", buf);
+    if(buf[0] != '*')
+    {
+//        log_msg("string '%s' not formed correctly", buf);               
+        return NULL;
+    }
+
+    idx = 1;
+    while(buf[idx] != '\r')
+    {
+        if(!isdigit(buf[idx]))
+            return NULL;
+        num_args = (num_args)*10 + (buf[idx] - '0');
+        idx++;
+    }
+    idx+=2;
+//    log_msg("num of arguments : %d", num_args);
+    s = new string[num_args];
+    *count = num_args;
+    for(int i = 0; i < num_args; i++)
+    {
+        idx++;
+        int num = 0;
+        while(buf[idx] != '\r')
+        {
+            num = (num)*10 + (buf[idx] - '0');
+            idx++;
+        }
+        idx+=2;
+        char buffer[1024];
+        strncpy(buffer, &buf[idx], num);
+        buffer[num] = 0;
+//        log_msg("ARG><%d> %s", num, buffer);
+        idx += num+2;
+        s[i] = string(buffer);
+    }
+    
+    return s;
 }
 
 int main(int argc, char *argv[])
@@ -224,8 +265,20 @@ int main(int argc, char *argv[])
                     }
                     else
                     {
-                        buf[len] = 0;
-                        ParseText(buf, len);
+                        int count = 0;
+                        string *s;
+                        s = ParseText(buf, len, &count);
+                        if(!IS_NULL(s))
+                        {
+                            Redis::GetInstance()->Execute(s, count, fds[i].fd);
+                        }
+                        else
+                        {
+                            int bytes = 0;
+                            char buffer[1024];
+                            bytes = snprintf(buffer, 1024, "-Please send command using Redis protocol only\n");
+                            write(fds[i].fd, buffer, bytes);
+                        }
                     }
                 }
                 else if(fds[i].revents & POLLERR || (fds[i].revents & POLLNVAL))

@@ -1,6 +1,6 @@
 CPP:=g++
-CFLAGS := -g3
-#CFLAGS := -Os -s -ffunction-sections -fdata-sections 
+#CFLAGS := -g3
+CFLAGS := -Os -s -ffunction-sections -fdata-sections 
 WARNINGS:= -Wall
 
 INCLUDES := -I. 
@@ -11,6 +11,7 @@ CPP_FILES += util.cpp
 CPP_FILES += tree.cpp
 CPP_FILES += zlist.cpp
 CPP_FILES += keyvalue.cpp
+CPP_FILES += redis.cpp
 CPP_FILES += test.cpp
 
 CPP_OBJECTS := $(CPP_FILES:.cpp=.o)    

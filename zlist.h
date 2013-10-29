@@ -1,3 +1,5 @@
+#ifndef _ZLIST_H_
+#define _ZLIST_H_
 #include "tree.h"
 
 #include <string>
@@ -37,3 +39,5 @@ class ZList
 
         int GetNext(int *key, char *str, int str_len);
 };
+
+#endif

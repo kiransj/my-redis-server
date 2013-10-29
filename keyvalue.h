@@ -1,3 +1,5 @@
+#ifndef _KEYVALUE_H_
+#define _KEYVALUE_H_
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
@@ -16,7 +18,7 @@ class BitArray
         BitArray() { size = 0; array = NULL; }
         ~BitArray() { if(!IS_NULL(array))free(array); }
         int SetString(const uint8_t *data, const uint32_t sz);
-        const uint8_t *GetString(uint32_t * const length);
+        const char *GetString(uint32_t * const length);
         int GetBit(const uint32_t bit_number);
         int SetBit(const uint32_t bit_number, const bool value);
 };
@@ -45,4 +47,4 @@ class KeyValue
         bool SETBIT(string key, uint32_t bit_number, bool bit_value);
 };
 
-
+#endif

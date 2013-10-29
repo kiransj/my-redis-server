@@ -88,6 +88,9 @@ int ZList::ZRANGE(int min, int max, bool WITHSCORES)
         return 0;
     }
 
+    if(max > tr.GetNumElements())
+        max = tr.GetNumElements();
+
     n = tr.GetNthElement(min, &rth);
     
     rth = min - rth;
@@ -101,7 +104,7 @@ int ZList::ZRANGE(int min, int max, bool WITHSCORES)
             if(!rth)
             {
                 count_by_key = false;
-                return 1;
+                return (Max - Min);
             }
             else
             {

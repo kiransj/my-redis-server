@@ -28,11 +28,11 @@ int BitArray::SetString(const uint8_t *data, const uint32_t sz)
     return 1;
 }
 
-const uint8_t * BitArray::GetString(uint32_t * const length)
+const char * BitArray::GetString(uint32_t * const length)
 {
     if(!IS_NULL(length))
         *length = size;
-    return array;
+    return (char*)array;
 }
 
 int BitArray::SetBit(const uint32_t bit_number, const bool value)
@@ -76,6 +76,7 @@ bool KeyValue::SET(string key, string value, time_t milli_seconds, bool NX, bool
         v = new Value;
         if(IS_NULL(v))
         {
+            log_msg("no memory");
             return false;
         }
     }
@@ -83,7 +84,7 @@ bool KeyValue::SET(string key, string value, time_t milli_seconds, bool NX, bool
     if(milli_seconds)
         v->exp_time = GetTime() + milli_seconds;
     dict[key] = v;
-    return false;
+    return true;
 }
 bool KeyValue::GET(string key, BitArray **b)
 {
