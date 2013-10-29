@@ -3,16 +3,16 @@ CPP:=g++
 CFLAGS := -Os -s -ffunction-sections -fdata-sections 
 WARNINGS:= -Wall
 
-INCLUDES := -I. 
+INCLUDES := -I./inc
 OUTPUT   := ./a.out
 
 CPP_FILES := 
-CPP_FILES += util.cpp
-CPP_FILES += tree.cpp
-CPP_FILES += zlist.cpp
-CPP_FILES += keyvalue.cpp
-CPP_FILES += redis.cpp
-CPP_FILES += test.cpp
+CPP_FILES += src/util.cpp
+CPP_FILES += src/tree.cpp
+CPP_FILES += src/zlist.cpp
+CPP_FILES += src/keyvalue.cpp
+CPP_FILES += src/redis.cpp
+CPP_FILES += src/test.cpp
 
 CPP_OBJECTS := $(CPP_FILES:.cpp=.o)    
 
