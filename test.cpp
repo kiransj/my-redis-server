@@ -195,7 +195,7 @@ int main(int argc, char *argv[])
 {
     int num_of_fd = 0;
     struct pollfd fds[MAX_CONN];
-    int len, socket_fd, tmp;
+    int len, socket_fd, tmp = 0;
     struct sockaddr_in sock;
 
     memset(fds, 0, sizeof(fds));
@@ -281,10 +281,11 @@ int main(int argc, char *argv[])
                         if(!IS_NULL(s))
                         {
                             Redis::GetInstance()->Execute(s, count, fds[i].fd);
+                            delete[] s;
                         }
                         else
                         {
-                            send_msg(fds[i].fd,"-Please send command using Redis protocol only\n");
+                            send_msg(fds[i].fd,"-Err Please send command using Redis protocol only\n");
                         }
                     }
                 }

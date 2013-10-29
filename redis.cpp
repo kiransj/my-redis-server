@@ -64,7 +64,6 @@ bool Redis::handleSetCmd(string *args, int count, int socket_fd)
         }
 
     }
-    log_msg("exp_time = %u", exp_time);
     if(kv.SET(args[1], args[2], exp_time, NX, XX) == true)
     {
         send_msg(socket_fd, "+OK\r\n");

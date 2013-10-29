@@ -1,6 +1,6 @@
 CPP:=g++
-CFLAGS := -g3 
-#CFLAGS := -Os -s -ffunction-sections -fdata-sections -m32
+#CFLAGS := -g3 
+CFLAGS := -Os -s -ffunction-sections -fdata-sections 
 WARNINGS:= -Wall
 
 INCLUDES := -I. 
