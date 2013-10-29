@@ -121,17 +121,30 @@ int test_keyvalue(int argc, char *argv[])
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <errno.h>
 #include <poll.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <sys/time.h>
 
-#define DEFAULT_PORT  15000
+#define DEFAULT_PORT  15001
 #define MAX_CONN      1024
 #define TIMEOUT       10000
 #define POLL_ERR      (-1)
 #define POLL_EXPIRE   (0)
+
+int send_msg(int socket_fd, const char *format, ...)
+{
+    int n, ret;
+    va_list ap;
+    char buffer[1024];
+    va_start(ap, format);
+    n = vsnprintf(buffer, 1024, format, ap);
+    ret = write(socket_fd, buffer, n);
+    va_end(ap);
+    return ret;
+}
 
 string* ParseText(const char *buf, const int len, int *count)
 {
@@ -204,12 +217,10 @@ int main(int argc, char *argv[])
         close(socket_fd);
         exit(1);
     }
-
     if(setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &tmp, sizeof(int)) < 0)
     {
         log_msg("setsockopt call failed");
     }        
-
     if(listen(socket_fd, 10) < 0)
     {
         log_msg("listen() call failed");
@@ -228,7 +239,6 @@ int main(int argc, char *argv[])
         }
         else if(ret == POLL_ERR)
         {
-            extern int errno;
             log_msg("Error in POLL aborting %s", strerror(errno));
             break;
         }
@@ -236,7 +246,7 @@ int main(int argc, char *argv[])
         {
             if(fds[0].revents & POLLIN)
             {
-                size_t len = sizeof(struct sockaddr_in);
+                socklen_t len = sizeof(struct sockaddr_in);
                 int new_socket = accept(socket_fd, (struct sockaddr *)&sock, &len);
                 fds[num_of_fd].fd = new_socket;
                 fds[num_of_fd].events = POLLIN;
@@ -274,10 +284,7 @@ int main(int argc, char *argv[])
                         }
                         else
                         {
-                            int bytes = 0;
-                            char buffer[1024];
-                            bytes = snprintf(buffer, 1024, "-Please send command using Redis protocol only\n");
-                            write(fds[i].fd, buffer, bytes);
+                            send_msg(fds[i].fd,"-Please send command using Redis protocol only\n");
                         }
                     }
                 }

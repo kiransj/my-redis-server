@@ -24,11 +24,9 @@ bool Redis::handleSetCmd(string *args, int count, int socket_fd)
 {
     bool NX = false, XX = false;
     unsigned int exp_time = 0;
-    int bytes = 0;
     if(count < 3)
     {
-        bytes = snprintf(buffer, 1024, "-Wrong number of arguments for 'SET' command\r\n");
-        write(socket_fd, buffer, bytes);
+        send_msg(socket_fd, "-Err Wrong number of arguments\r\n");
         return false;
     }
 
@@ -39,11 +37,20 @@ bool Redis::handleSetCmd(string *args, int count, int socket_fd)
         {
             if(i+1 == count)
             {
-                bytes = snprintf(buffer, 1024, "-Err value is not a integer or out of range\r\n");
-                write(socket_fd, buffer, bytes);
+                send_msg(socket_fd, "-ERR wrong number of args\r\n");
             }
-            exp_time = atoi(args[++i].c_str());
-            if(args[i] == "ex")
+            const char *ptr = args[++i].c_str();
+            int idx = 0;
+            while(ptr[idx] != 0)
+            {
+                if(!isdigit(ptr[idx]))
+                {
+                    send_msg(socket_fd, "-Err value is not a integer or out of range\r\n");
+                }
+                idx++;
+            }
+            exp_time = atoi(args[i].c_str());
+            if(args[i-1] == "ex")
                 exp_time *= 1000;
         }
         else if(args[i] == "nx")
@@ -52,20 +59,19 @@ bool Redis::handleSetCmd(string *args, int count, int socket_fd)
             XX = true;
         else
         {
-            bytes = snprintf(buffer, 1024, "-Err ERR syntax error near '%s'\r\n", args[i].c_str());
-            write(socket_fd, buffer, bytes);
+            send_msg(socket_fd, "-Err ERR syntax error near '%s'\r\n", args[i].c_str());
+            return false;
         }
 
     }
+    log_msg("exp_time = %u", exp_time);
     if(kv.SET(args[1], args[2], exp_time, NX, XX) == true)
     {
-        bytes = snprintf(buffer, MAX_BUFFER_SIZE, "+OK\r\n");
-        write(socket_fd, buffer, bytes);
+        send_msg(socket_fd, "+OK\r\n");
     }
     else
     {
-        bytes = snprintf(buffer, 1024, "$-1\r\n");
-        write(socket_fd, buffer, bytes);
+        send_msg(socket_fd, "$-1\r\n");
         return false;
     }
     return true;
@@ -73,12 +79,10 @@ bool Redis::handleSetCmd(string *args, int count, int socket_fd)
 
 bool Redis::handleGetCmd(string *args, int count, int socket_fd)
 {
-    int bytes;
     BitArray *b;
     if(count != 2)
     {
-        bytes = snprintf(buffer, 1024, "-Wrong number of arguments for 'GET' command\r\n");
-        write(socket_fd, buffer, bytes);
+        send_msg(socket_fd, "-Wrong number of arguments for 'GET' command\r\n");
         return false;
     }
     if(kv.GET(args[1], &b) == true)
@@ -86,18 +90,47 @@ bool Redis::handleGetCmd(string *args, int count, int socket_fd)
         uint32_t size = 0;
         const char *str;
         str = (char*)b->GetString(&size);
-        bytes = snprintf(buffer, 1024, "$%d\r\n%s\r\n", size, str);
-        write(socket_fd, buffer, bytes);
+        send_msg(socket_fd, "$%d\r\n%s\r\n", size, str);
     }
     else
     {
-        bytes = snprintf(buffer, 1024, "$-1\r\n");
-        write(socket_fd, buffer, bytes);
+        send_msg(socket_fd, "$-1\r\n");
     }
 
     return true;
 }
 
+
+bool Redis::handleZAddCmd(string *args, int count, int socket_fd)
+{
+    int ret = 0;
+    if(count < 4)
+    {
+        send_msg(socket_fd, "-Wrong number of arguments for 'ZADD' command\r\n");
+        return false;
+    }
+
+    ret = zl.ZADD(atoi(args[2].c_str()), args[3]);
+    send_msg(socket_fd, ":%d\r\n", ret);
+
+    return true;
+}
+
+bool Redis::handleZCardCmd(string *args, int count, int socket_fd)
+{
+    int ret = 0;
+    if(count < 2)
+    {
+        send_msg(socket_fd, "-Err Wrong number of arguments for 'ZADD' command\r\n");
+        return false;
+    }
+
+    ret = zl.ZCARD();
+    send_msg(socket_fd, ":%d\r\n", ret);
+
+    return true;
+
+}
 bool Redis::Execute(string *args, int count, int socket_fd)
 {
     bool flag = false;
@@ -124,11 +157,16 @@ bool Redis::Execute(string *args, int count, int socket_fd)
         case REDIS_CMD_SETBIT:
         case REDIS_CMD_GETBIT:
         case REDIS_CMD_ZADD:
+            flag = handleZAddCmd(args, count, socket_fd);
+            break;
         case REDIS_CMD_ZCARD:
+            flag = handleZCardCmd(args, count, socket_fd);
+            break;
         case REDIS_CMD_ZRANGE:
         case REDIS_CMD_ZCOUNT:
         default:
             log_msg("unknown cmd '%s'", args[0].c_str());
+            send_msg(socket_fd, "-Err Unknown command '%s'\r\n", args[0].c_str());
     }
     return flag;
 }
