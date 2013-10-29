@@ -134,30 +134,3 @@ KeyValue::~KeyValue()
     }
 }
 
-int main(int argc, char *argv[])
-{
-    KeyValue kv;
-    int count = argc >= 2 ? atoi(argv[1]) : 1000;
-
-    for(int i = 1; i <= count; i++)
-    {
-        int key1 = i;//random() % 3214600 + 1;
-        char buffer[64], key[64];
-        snprintf(buffer, 64, "N%d", key1);
-        snprintf(key, 64, "%d", key1);
-        kv.SET(key, buffer, 10000, false, false);
-    }
-    for(int i = 1; i <= count; i++)
-    {
-        uint32_t count = 0;
-        BitArray *b = NULL;
-        int key1 = i;//random() % 3214600 + 1;
-        char buffer[64], key[64];
-        snprintf(buffer, 64, "N%d", key1);
-        snprintf(key, 64, "%d", key1);
-        ASSERT(kv.GET(key, &b) == false);
-        ASSERT(strncmp(buffer, (char *)b->GetString(&count), count) != 0);
-        log_msg("%s == %s", buffer, (char*)b->GetString(NULL));
-    }
-    return 0;
-}
