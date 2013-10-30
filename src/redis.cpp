@@ -19,39 +19,54 @@ typedef enum
     REDIS_CMD_ZCOUNT,
 }REDIS_CMD;
 
-
+bool StringToInt(const char *s, unsigned int *num)
+{
+    int idx = 0;
+    int number = 0;
+    while(s[idx] != 0)
+    {
+        if(isdigit(s[idx]))
+        {
+            number = number*10 + (s[idx] - '0');
+        }
+        else
+        {
+            return false;
+        }
+        idx++;
+    }    
+    *num = number;
+    return true;
+}
 bool Redis::handleSetCmd(string *args, int count, int socket_fd)
 {
     bool NX = false, XX = false;
     unsigned int exp_time = 0;
     if(count < 3)
     {
-        send_msg(socket_fd, "-Err Wrong number of arguments\r\n");
+        send_msg(socket_fd, "-Err Wrong number of arguments for 'SET' command\r\n");
         return false;
     }
 
     for(int i = 3; i < count; i++)
-    {        
+    {      
+        bool is_ex = false;
         std::transform(args[i].begin(), args[i].end(), args[i].begin(), ::tolower);
-        if(args[i] == "ex" || args[i] == "px")
+        if((is_ex = (args[i] == "ex")) || args[i] == "px")
         {
             if(i+1 == count)
             {
                 send_msg(socket_fd, "-ERR wrong number of args\r\n");
+                return false;
             }
-            const char *ptr = args[++i].c_str();
-            int idx = 0;
-            while(ptr[idx] != 0)
+            else if(StringToInt(args[i+1].c_str(), &exp_time) == false)
             {
-                if(!isdigit(ptr[idx]))
-                {
-                    send_msg(socket_fd, "-Err value is not a integer or out of range\r\n");
-                }
-                idx++;
+                send_msg(socket_fd, "-Err value is not a integer or out of range\r\n");
+                return false;
             }
-            exp_time = atoi(args[i].c_str());
-            if(args[i-1] == "ex")
+            if(is_ex)
                 exp_time *= 1000;
+            i++;
         }
         else if(args[i] == "nx")
             NX = true;
@@ -62,7 +77,6 @@ bool Redis::handleSetCmd(string *args, int count, int socket_fd)
             send_msg(socket_fd, "-Err ERR syntax error near '%s'\r\n", args[i].c_str());
             return false;
         }
-
     }
     if(kv.SET(args[1], args[2], exp_time, NX, XX) == true)
     {
@@ -120,7 +134,7 @@ bool Redis::handleZCardCmd(string *args, int count, int socket_fd)
     int ret = 0;
     if(count < 2)
     {
-        send_msg(socket_fd, "-Err Wrong number of arguments for 'ZADD' command\r\n");
+        send_msg(socket_fd, "-Err Wrong number of arguments for 'ZCARD' command\r\n");
         return false;
     }
 
@@ -128,8 +142,95 @@ bool Redis::handleZCardCmd(string *args, int count, int socket_fd)
     send_msg(socket_fd, ":%d\r\n", ret);
 
     return true;
+}
+
+bool Redis::handleZCountCmd(string *args, int count, int socket_fd)
+{
+    int min,max;
+    int ret = 0;
+    if(count != 4)
+    {
+        send_msg(socket_fd, "-Err Wrong number of arguments for 'ZCOUNT' command\r\n");
+        return false;
+    }
+
+    int idx = 0;
+    char *ptr = (char*)args[2].c_str();
+    while(ptr[idx] != 0)
+    {
+        if(!isdigit(ptr[idx]))
+        {
+            send_msg(socket_fd, "-Err min value is not a integer or out of range\r\n");
+        }
+        idx++;
+    }
+    min = atoi(ptr);
+
+    idx = 0;
+    ptr = (char*)args[3].c_str();
+    while(ptr[idx] != 0)
+    {
+        if(!isdigit(ptr[idx]))
+        {
+            send_msg(socket_fd, "-Err max value is not a integer or out of range\r\n");
+        }
+        idx++;
+    }
+    max = atoi(ptr);
+
+    ret = zl.ZCOUNT(min, max);
+    send_msg(socket_fd, ":%d\r\n", ret);
+
+    return true;
 
 }
+
+bool Redis::handleZRangeCmd(string *args, int count, int socket_fd)
+{
+    int min,max;
+    int ret = 0;
+    if(count < 4)
+    {
+        send_msg(socket_fd, "-Err Wrong number of arguments for 'ZCOUNT' command\r\n");
+        return false;
+    }
+
+    int idx = 0;
+    char *ptr = (char*)args[2].c_str();
+    while(ptr[idx] != 0)
+    {
+        if(!isdigit(ptr[idx]))
+        {
+            send_msg(socket_fd, "-Err min value is not a integer or out of range\r\n");
+        }
+        idx++;
+    }
+    min = atoi(ptr);
+
+    idx = 0;
+    ptr = (char*)args[3].c_str();
+    while(ptr[idx] != 0)
+    {
+        if(!isdigit(ptr[idx]))
+        {
+            send_msg(socket_fd, "-Err max value is not a integer or out of range\r\n");
+        }
+        idx++;
+    }
+    max = atoi(ptr);
+
+    ret = zl.ZRANGE(min, max, false);
+    send_msg(socket_fd, "*%d\r\n", ret);
+
+    int score;
+    char buffer[1024];
+    while(zl.GetNext(&score, buffer, 1024))
+    {
+        send_msg(socket_fd, "$%d\r\n%s\r\n", strlen(buffer), buffer);
+    }
+    return true;
+}
+
 bool Redis::Execute(string *args, int count, int socket_fd)
 {
     bool flag = false;
@@ -162,7 +263,11 @@ bool Redis::Execute(string *args, int count, int socket_fd)
             flag = handleZCardCmd(args, count, socket_fd);
             break;
         case REDIS_CMD_ZRANGE:
+            flag = handleZRangeCmd(args, count, socket_fd);
+            break;
         case REDIS_CMD_ZCOUNT:
+            flag = handleZCountCmd(args, count, socket_fd);
+            break;
         default:
             log_msg("unknown cmd '%s'", args[0].c_str());
             send_msg(socket_fd, "-Err Unknown command '%s'\r\n", args[0].c_str());

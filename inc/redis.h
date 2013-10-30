@@ -22,6 +22,8 @@ class Redis
         bool handleSetCmd(string *args, int count, int socket_fd);
         bool handleZAddCmd(string *args, int count, int socket_fd);
         bool handleZCardCmd(string *args, int count, int socket_fd);
+        bool handleZCountCmd(string *args, int count, int socket_fd);
+        bool handleZRangeCmd(string *args, int count, int socket_fd);
     public:
         bool Execute(string *args, int count, int socket_fd);
         static Redis* GetInstance(void);        

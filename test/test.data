@@ -32138,4 +32138,3 @@ zadd myset 19294 19294
 zadd myset 20647 20647
 zadd myset 24856 24856
 zadd myset 4859 4859
-zcard myset

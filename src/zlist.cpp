@@ -96,7 +96,7 @@ int ZList::ZRANGE(int min, int max, bool WITHSCORES)
     rth = min - rth;
 
     Min = min;
-    Max = max;
+    Max = max+1;
     while(!IS_NULL(n))
     {
         for(ii = n->GetData().begin(); ii != n->GetData().end(); ++ii)
@@ -135,7 +135,8 @@ int ZList::GetNext(int *key, char *str, int str_len)
 {
     if(IS_NULL(n) || (Min > Max)) 
     {
-        Min = Max = 0;
+        Min = 1;
+        Max = 0;
         n = NULL;
         return 0;
     }

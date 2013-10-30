@@ -115,46 +115,16 @@ int test_keyvalue(int argc, char *argv[])
     return 0;
 }
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <errno.h>
-#include <poll.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <sys/time.h>
 
-#define DEFAULT_PORT  15001
-#define MAX_CONN      1024
-#define TIMEOUT       10000
-#define POLL_ERR      (-1)
-#define POLL_EXPIRE   (0)
-
-int send_msg(int socket_fd, const char *format, ...)
-{
-    int n, ret;
-    va_list ap;
-    char buffer[1024];
-    va_start(ap, format);
-    n = vsnprintf(buffer, 1024, format, ap);
-    ret = write(socket_fd, buffer, n);
-    va_end(ap);
-    return ret;
-}
-
-string* ParseText(const char *buf, const int len, int *count)
+string* ParseRedixProtocol(const char *buf, const int len, int *count)
 {
     string *s = NULL;
     int num_args = 0;
     int idx = 0;
-//    log_msg("TEXT\n%s", buf);
+    log_msg("TEXT\n%s", buf);
     if(buf[0] != '*')
     {
-//        log_msg("string '%s' not formed correctly", buf);               
+        log_msg("string '%s' not formed correctly", buf);               
         return NULL;
     }
 
@@ -167,7 +137,7 @@ string* ParseText(const char *buf, const int len, int *count)
         idx++;
     }
     idx+=2;
-//    log_msg("num of arguments : %d", num_args);
+    log_msg("num of arguments : %d", num_args);
     s = new string[num_args];
     *count = num_args;
     for(int i = 0; i < num_args; i++)
@@ -180,134 +150,32 @@ string* ParseText(const char *buf, const int len, int *count)
             idx++;
         }
         idx+=2;
-        char buffer[1024];
-        strncpy(buffer, &buf[idx], num);
-        buffer[num] = 0;
-//        log_msg("ARG><%d> %s", num, buffer);
-        idx += num+2;
-        s[i] = string(buffer);
+        s[i] = string(&buf[idx], num);
+        idx += num+2;        
     }
     
     return s;
 }
 
+void DataHandler(const char *buf, const int len, const int socket_fd)
+{
+    string *s;
+    int count = 0;    
+    s = ParseRedixProtocol(buf, len, &count);
+    if(!IS_NULL(s))
+    {
+        Redis::GetInstance()->Execute(s, count, socket_fd);
+        delete[] s;
+    }
+    else
+    {
+        send_msg(socket_fd,"-Err Please send command using Redis protocol only\n");
+    }
+}
+
+int start_server(void (*data_handler)(const char *buf, const int len, const int socket_fd));
 int main(int argc, char *argv[])
 {
-    int num_of_fd = 0;
-    struct pollfd fds[MAX_CONN];
-    int len, socket_fd, tmp = 0;
-    struct sockaddr_in sock;
-
-    memset(fds, 0, sizeof(fds));
-    memset(&sock, 0, sizeof(sock));
-
-    if((socket_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-    {
-        log_msg("socket() call failed");
-        exit(1);
-    }
-    sock.sin_family = AF_INET;
-    sock.sin_port = htons(DEFAULT_PORT);
-    len = INADDR_ANY;
-    memset(&sock.sin_addr, len, sizeof(struct in_addr));
-
-    if(bind(socket_fd, (struct sockaddr *) &sock, sizeof(struct sockaddr_in)) < 0)
-    {
-        log_msg("bind() call failed");
-        close(socket_fd);
-        exit(1);
-    }
-    if(setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &tmp, sizeof(int)) < 0)
-    {
-        log_msg("setsockopt call failed");
-    }        
-    if(listen(socket_fd, 10) < 0)
-    {
-        log_msg("listen() call failed");
-        close(socket_fd);
-        exit(1);
-    }
-
-    fds[0].fd = socket_fd;
-    fds[0].events = POLLIN;
-    num_of_fd++;
-    while(1)
-    {
-        int ret = poll(fds, num_of_fd, TIMEOUT);
-        if(ret == POLL_EXPIRE)
-        {
-        }
-        else if(ret == POLL_ERR)
-        {
-            log_msg("Error in POLL aborting %s", strerror(errno));
-            break;
-        }
-        else
-        {
-            if(fds[0].revents & POLLIN)
-            {
-                socklen_t len = sizeof(struct sockaddr_in);
-                int new_socket = accept(socket_fd, (struct sockaddr *)&sock, &len);
-                fds[num_of_fd].fd = new_socket;
-                fds[num_of_fd].events = POLLIN;
-                fds[num_of_fd].revents = 0;
-                num_of_fd++;
-                log_msg("new incoming connection");
-            }
-            
-            for(int i = 1; i < num_of_fd; i++)
-            {
-                if(fds[i].revents &  POLLIN)
-                {
-                    char buf[1024];
-                    int len;
-                    len = read(fds[i].fd, buf, 1024);
-                    if(len == 0)
-                    {
-                        close(fds[i].fd);
-                        log_msg("fd %d closed I guess", fds[i].fd);
-                        if(i < (num_of_fd-1))
-                        {
-                            memcpy(&fds[i], &fds[num_of_fd-1], sizeof(struct pollfd));
-                            i--;                            
-                        }
-                        num_of_fd--;                        
-                    }
-                    else
-                    {
-                        int count = 0;
-                        string *s;
-                        s = ParseText(buf, len, &count);
-                        if(!IS_NULL(s))
-                        {
-                            Redis::GetInstance()->Execute(s, count, fds[i].fd);
-                            delete[] s;
-                        }
-                        else
-                        {
-                            send_msg(fds[i].fd,"-Err Please send command using Redis protocol only\n");
-                        }
-                    }
-                }
-                else if(fds[i].revents & POLLERR || (fds[i].revents & POLLNVAL))
-                {
-                    log_msg("fd = %d POLLERR|POLLNVAL", fds[i].fd);
-                    if(fds[i].revents & POLLERR)
-                        close(fds[i].fd);
-                    if(i < (num_of_fd-1))
-                    {
-                        memcpy(&fds[i], &fds[num_of_fd-1], sizeof(struct pollfd));
-                        i--;                            
-                    }
-                    num_of_fd--;                        
-                }
-                else if(fds[i].revents != 0)
-                {
-                    log_msg("fd = %d UNKNOWN REVENT : %#x", fds[i].fd, fds[i].revents);
-                }
-            }
-        }
-    }
-    close(socket_fd);
-    return 0;
+    start_server(DataHandler);
 }
+
