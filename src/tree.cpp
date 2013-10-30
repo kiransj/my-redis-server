@@ -346,7 +346,7 @@ Node<KEY>* Tree<KEY>::FindNode(KEY key)
 template <class KEY>
 Node<KEY>* Tree<KEY>::FindNear(KEY key)
 {
-    Node<KEY> *tmp = this->root, *tmp1;
+    Node<KEY> *tmp = this->root, *tmp1 = NULL;
     while(!IS_NULL(tmp))
     {
         tmp1 = tmp;

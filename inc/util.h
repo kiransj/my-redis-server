@@ -11,5 +11,10 @@
 
 typedef unsigned int uint32_t;
 typedef unsigned char uint8_t;
+
+void enable_debug_msg(void);
+void disable_debug_msg(void);
+
 void log_msg(const char *format, ...);
+int send_msg(int socket_fd, const char *format, ...);
 #endif

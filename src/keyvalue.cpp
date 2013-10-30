@@ -28,11 +28,11 @@ int BitArray::SetString(const uint8_t *data, const uint32_t sz)
     return 1;
 }
 
-const uint8_t * BitArray::GetString(uint32_t * const length)
+const char * BitArray::GetString(uint32_t * const length)
 {
     if(!IS_NULL(length))
         *length = size;
-    return array;
+    return (char*)array;
 }
 
 int BitArray::SetBit(const uint32_t bit_number, const bool value)
@@ -76,6 +76,7 @@ bool KeyValue::SET(string key, string value, time_t milli_seconds, bool NX, bool
         v = new Value;
         if(IS_NULL(v))
         {
+            log_msg("no memory");
             return false;
         }
     }
@@ -83,7 +84,7 @@ bool KeyValue::SET(string key, string value, time_t milli_seconds, bool NX, bool
     if(milli_seconds)
         v->exp_time = GetTime() + milli_seconds;
     dict[key] = v;
-    return false;
+    return true;
 }
 bool KeyValue::GET(string key, BitArray **b)
 {
@@ -134,30 +135,3 @@ KeyValue::~KeyValue()
     }
 }
 
-int main(int argc, char *argv[])
-{
-    KeyValue kv;
-    int count = argc >= 2 ? atoi(argv[1]) : 1000;
-
-    for(int i = 1; i <= count; i++)
-    {
-        int key1 = i;//random() % 3214600 + 1;
-        char buffer[64], key[64];
-        snprintf(buffer, 64, "N%d", key1);
-        snprintf(key, 64, "%d", key1);
-        kv.SET(key, buffer, 10000, false, false);
-    }
-    for(int i = 1; i <= count; i++)
-    {
-        uint32_t count = 0;
-        BitArray *b = NULL;
-        int key1 = i;//random() % 3214600 + 1;
-        char buffer[64], key[64];
-        snprintf(buffer, 64, "N%d", key1);
-        snprintf(key, 64, "%d", key1);
-        ASSERT(kv.GET(key, &b) == false);
-        ASSERT(strncmp(buffer, (char *)b->GetString(&count), count) != 0);
-        log_msg("%s == %s", buffer, (char*)b->GetString(NULL));
-    }
-    return 0;
-}
