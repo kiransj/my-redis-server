@@ -73,9 +73,8 @@ int ZList::ZSCORE(string data)
 
 int ZList::ZRANGE(int min, int max, bool WITHSCORES)
 {
-    
+    int Min, Max; 
     int rth = 0;
-
     if(min < 0)
         min = tr.GetNumElements() + min;
 
@@ -85,7 +84,7 @@ int ZList::ZRANGE(int min, int max, bool WITHSCORES)
     if(max < min)
     {
         log_msg("Max (%d) < Min(%d) hence zrange failed", max, min);
-        return 0;
+        return -1;
     }
 
     if(max > tr.GetNumElements())
@@ -96,14 +95,13 @@ int ZList::ZRANGE(int min, int max, bool WITHSCORES)
     rth = min - rth;
 
     Min = min;
-    Max = max+1;
+    Max = max;
     while(!IS_NULL(n))
     {
         for(ii = n->GetData().begin(); ii != n->GetData().end(); ++ii)
         {
             if(!rth)
             {
-                count_by_key = false;
                 return (Max - Min);
             }
             else
@@ -113,30 +111,14 @@ int ZList::ZRANGE(int min, int max, bool WITHSCORES)
         }
         n = n->GetNext();
     }
-    return 0; 
+    return -1; 
 }
 
-
-int ZList::ZRANGEBYSCORE(int min, int max, bool WITHSCORES)
-{
-    n = tr.FindNear(min);
-    if(IS_NULL(n))
-    {
-        return 0;
-    }
-    Min = n->GetKey();
-    Max = max;
-    count_by_key = true;
-    ii = n->GetData().begin(); 
-    return 1;
-}
 
 int ZList::GetNext(int *key, char *str, int str_len)
 {
-    if(IS_NULL(n) || (Min > Max)) 
+    if(IS_NULL(n)) 
     {
-        Min = 1;
-        Max = 0;
         n = NULL;
         return 0;
     }
@@ -144,8 +126,6 @@ int ZList::GetNext(int *key, char *str, int str_len)
     if(ii != n->GetData().end())
     {
         *key = n->GetKey();
-        if(count_by_key == false)
-            Min++;
         snprintf(str, str_len, "%s", ii->c_str());
         ii++;
         return 1;
@@ -154,23 +134,10 @@ int ZList::GetNext(int *key, char *str, int str_len)
     n = n->GetNext();
     if(!IS_NULL(n))
     {
-        if(count_by_key == true)
-        {
-            Min = n->GetKey();
-            if(Min > Max)
-            {
-                n = NULL;
-                return 0;
-            }
-        }
         ii = n->GetData().begin();
         if(ii != n->GetData().end())
         {
             *key = n->GetKey();
-            if(count_by_key == false)
-            {
-                Min++;
-            }
             snprintf(str, str_len, "%s", ii->c_str());
             ++ii;
             return 1;

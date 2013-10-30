@@ -2,19 +2,20 @@
 #include <unistd.h>
 #include "util.h"
 
-static bool debug_flag = false;
+static bool debug_flag = true;
 
 void enable_debug_msg(void) { debug_flag = true; }
 void disable_debug_msg(void) { debug_flag = false; }
 void log_msg(const char *format, ...)
 {
+    static int line_number = 0;
     if(debug_flag)
     {
         char buffer[1024];
         va_list ap;
         va_start(ap, format);
         vsnprintf(buffer, 1024, format, ap);
-        printf("%s\n", buffer);
+        printf("%d> %s\n", ++line_number, buffer);
     }
     return;
 }

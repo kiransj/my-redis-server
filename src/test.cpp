@@ -34,18 +34,20 @@ int test_zlist(int argc, char *argv[])
     cout<<"ZCARD MYSET = "<<zl.ZCARD()<<endl;
     cout<<"ZCOUNT MYSET = "<<zl.ZCOUNT(0, 100000)<<endl;
     cout<<"ZRANK MYSET = "<<zl.ZRANK("N0940037")<<endl;
-    zl.check();
+//    zl.check();
     if(argc == 4)
     {
-        int min = atoi(argv[2]), max = atoi(argv[3]);
+        int min = atoi(argv[2]), max = atoi(argv[3]), ret = 0;
         cout<<endl<<endl<<"ZRange("<<min<<", "<<max<<")"<<endl;
-        if(zl.ZRANGEBYSCORE(min, max, false))
+        ret = zl.ZRANGE(min, max, false)+1;
+        if(ret > 0)
         {
             char str[1024];
             int key = 0, count = 0;
-            while(zl.GetNext(&key, str, 1024))
+            while(zl.GetNext(&key, str, 1024) && (ret > 0))
             {
                 cout<<++count<<"> "<<key<<" = "<<str<<endl;
+                --ret;
             }
         }
     }
@@ -176,6 +178,7 @@ void DataHandler(const char *buf, const int len, const int socket_fd)
 int start_server(void (*data_handler)(const char *buf, const int len, const int socket_fd));
 int main(int argc, char *argv[])
 {
+//    test_zlist(argc, argv);
     start_server(DataHandler);
 }
 

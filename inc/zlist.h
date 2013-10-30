@@ -18,8 +18,6 @@ class ZList
         bool iterator_active;
         Node<int> *n;
         set<string>::iterator ii;
-        int Min, Max;
-        bool count_by_key;
     public:
         ZList()  { count = 0; }
         ~ZList() { }

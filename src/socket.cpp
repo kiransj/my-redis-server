@@ -13,7 +13,7 @@
 
 #include "util.h"
 
-#define DEFAULT_PORT  15001
+#define DEFAULT_PORT  15000
 #define MAX_CONN      1024
 #define TIMEOUT       10000
 #define POLL_ERR      (-1)

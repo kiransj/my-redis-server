@@ -19,10 +19,17 @@ typedef enum
     REDIS_CMD_ZCOUNT,
 }REDIS_CMD;
 
-bool StringToInt(const char *s, unsigned int *num)
+bool StringToInt(const char *s, int *num)
 {
+    int sign = 1;
     int idx = 0;
     int number = 0;
+
+    if(s[idx] == '-')
+    {
+        sign = -1;
+        idx++;
+    }
     while(s[idx] != 0)
     {
         if(isdigit(s[idx]))
@@ -35,13 +42,13 @@ bool StringToInt(const char *s, unsigned int *num)
         }
         idx++;
     }    
-    *num = number;
+    *num = number * sign;
     return true;
 }
 bool Redis::handleSetCmd(string *args, int count, int socket_fd)
 {
     bool NX = false, XX = false;
-    unsigned int exp_time = 0;
+    int exp_time = 0;
     if(count < 3)
     {
         send_msg(socket_fd, "-Err Wrong number of arguments for 'SET' command\r\n");
@@ -154,30 +161,17 @@ bool Redis::handleZCountCmd(string *args, int count, int socket_fd)
         return false;
     }
 
-    int idx = 0;
-    char *ptr = (char*)args[2].c_str();
-    while(ptr[idx] != 0)
+    if(StringToInt(args[2].c_str(), &min) == false)
     {
-        if(!isdigit(ptr[idx]))
-        {
-            send_msg(socket_fd, "-Err min value is not a integer or out of range\r\n");
-        }
-        idx++;
+        send_msg(socket_fd, "-Err max value is not a integer or out of range\r\n");
+        return false;
     }
-    min = atoi(ptr);
-
-    idx = 0;
-    ptr = (char*)args[3].c_str();
-    while(ptr[idx] != 0)
+    if(StringToInt(args[3].c_str(), &max) == false)
     {
-        if(!isdigit(ptr[idx]))
-        {
-            send_msg(socket_fd, "-Err max value is not a integer or out of range\r\n");
-        }
-        idx++;
+        send_msg(socket_fd, "-Err max value is not a integer or out of range\r\n");
+        return false;
     }
-    max = atoi(ptr);
-
+    log_msg("Zcount min=%d max=%d", min, max);
     ret = zl.ZCOUNT(min, max);
     send_msg(socket_fd, ":%d\r\n", ret);
 
@@ -195,38 +189,29 @@ bool Redis::handleZRangeCmd(string *args, int count, int socket_fd)
         return false;
     }
 
-    int idx = 0;
-    char *ptr = (char*)args[2].c_str();
-    while(ptr[idx] != 0)
+    if(StringToInt(args[2].c_str(), &min) == false)
     {
-        if(!isdigit(ptr[idx]))
-        {
-            send_msg(socket_fd, "-Err min value is not a integer or out of range\r\n");
-        }
-        idx++;
+        send_msg(socket_fd, "-Err min value is not a integer or out of range\r\n");
+        return false;
     }
-    min = atoi(ptr);
-
-    idx = 0;
-    ptr = (char*)args[3].c_str();
-    while(ptr[idx] != 0)
+    if(StringToInt(args[3].c_str(), &max) == false)
     {
-        if(!isdigit(ptr[idx]))
-        {
-            send_msg(socket_fd, "-Err max value is not a integer or out of range\r\n");
-        }
-        idx++;
+        send_msg(socket_fd, "-Err max value is not a integer or out of range\r\n");
+        return false;
     }
-    max = atoi(ptr);
 
-    ret = zl.ZRANGE(min, max, false);
+    log_msg("ZRange min=%d max=%d", min, max);
+    ret = zl.ZRANGE(min, max, false)+1;
     send_msg(socket_fd, "*%d\r\n", ret);
+    log_msg("*%d\r\n", ret);
 
     int score;
     char buffer[1024];
-    while(zl.GetNext(&score, buffer, 1024))
+    while(zl.GetNext(&score, buffer, 1024) && (ret > 0))
     {
         send_msg(socket_fd, "$%d\r\n%s\r\n", strlen(buffer), buffer);
+        log_msg("$%d\r\n%s\r\n", strlen(buffer), buffer);
+        --ret;
     }
     return true;
 }
@@ -254,8 +239,6 @@ bool Redis::Execute(string *args, int count, int socket_fd)
         case REDIS_CMD_GET:
             flag = handleGetCmd(args, count, socket_fd);
             break;
-        case REDIS_CMD_SETBIT:
-        case REDIS_CMD_GETBIT:
         case REDIS_CMD_ZADD:
             flag = handleZAddCmd(args, count, socket_fd);
             break;
@@ -268,6 +251,8 @@ bool Redis::Execute(string *args, int count, int socket_fd)
         case REDIS_CMD_ZCOUNT:
             flag = handleZCountCmd(args, count, socket_fd);
             break;
+        case REDIS_CMD_SETBIT:
+        case REDIS_CMD_GETBIT:
         default:
             log_msg("unknown cmd '%s'", args[0].c_str());
             send_msg(socket_fd, "-Err Unknown command '%s'\r\n", args[0].c_str());
