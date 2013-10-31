@@ -221,6 +221,7 @@ bool Redis::handleZCountCmd(string *args, int count, int socket_fd)
 
 bool Redis::handleZRangeCmd(string *args, int count, int socket_fd)
 {
+    int withscores = 1;
     ZList *z;
     int min,max;
     int ret = 0;
@@ -246,9 +247,12 @@ bool Redis::handleZRangeCmd(string *args, int count, int socket_fd)
         send_msg(socket_fd, "-Err max value is not a integer or out of range\r\n");
         return false;
     }
+    
+    if(count == 5 && (args[4] == "withscores"))
+        withscores = 2;
 
     ret = z->ZRANGE(min, max, false)+1;
-    send_msg(socket_fd, "*%d\r\n", ret);
+    send_msg(socket_fd, "*%d\r\n", ret * withscores);
 
     int score, length = 0;
     char *buffer;
@@ -265,6 +269,10 @@ bool Redis::handleZRangeCmd(string *args, int count, int socket_fd)
             log_error("send_msg() failed, could be broken pipe");
             return false;
         }
+        char buffer[16];
+        int len;
+        len = snprintf(buffer, 16, "%d", score);
+        send_msg(socket_fd, "$%d\r\n%s\r\n", len, buffer);
         --ret;
     }
     return true;
