@@ -7,17 +7,15 @@ using namespace std;
 
 Redis *Redis::redis = NULL;
 
-typedef enum
+void strtolower(string &str)
 {
-    REDIS_CMD_SET = 1,
-    REDIS_CMD_GET,
-    REDIS_CMD_SETBIT,
-    REDIS_CMD_GETBIT,
-    REDIS_CMD_ZADD,
-    REDIS_CMD_ZRANGE,
-    REDIS_CMD_ZCARD,
-    REDIS_CMD_ZCOUNT,
-}REDIS_CMD;
+    int len = str.length(), i = 0;
+    while(i < len)
+    {
+        str[i] = tolower(str[i]);
+        i++;
+    }
+}
 
 bool StringToInt(const char *s, int *num)
 {
@@ -58,7 +56,7 @@ bool Redis::handleSetCmd(string *args, int count, int socket_fd)
     for(int i = 3; i < count; i++)
     {      
         bool is_ex = false;
-        std::transform(args[i].begin(), args[i].end(), args[i].begin(), ::tolower);
+        strtolower(args[i]);
         if((is_ex = (args[i] == "ex")) || args[i] == "px")
         {
             if(i+1 == count)
@@ -76,15 +74,20 @@ bool Redis::handleSetCmd(string *args, int count, int socket_fd)
             i++;
         }
         else if(args[i] == "nx")
+        {
             NX = true;
-        else if(args[i] == "xx")
+        }
+        else if(args[i] == "xx")            
+        {
             XX = true;
+        }
         else
         {
             send_msg(socket_fd, "-Err ERR syntax error near '%s'\r\n", args[i].c_str());
             return false;
         }
-    }
+    }    
+
     if(kv.SET(args[1], args[2], exp_time, NX, XX) == true)
     {
         send_msg(socket_fd, "+OK\r\n");
@@ -105,6 +108,7 @@ bool Redis::handleGetCmd(string *args, int count, int socket_fd)
         send_msg(socket_fd, "-Wrong number of arguments for 'GET' command\r\n");
         return false;
     }
+
     if(kv.GET(args[1], &b) == true)
     {
         uint32_t size = 0;
@@ -123,6 +127,7 @@ bool Redis::handleGetCmd(string *args, int count, int socket_fd)
 
 bool Redis::handleZAddCmd(string *args, int count, int socket_fd)
 {
+    ZList *z;
     int ret = 0;
     if(count < 4)
     {
@@ -130,7 +135,25 @@ bool Redis::handleZAddCmd(string *args, int count, int socket_fd)
         return false;
     }
 
-    ret = zl.ZADD(atoi(args[2].c_str()), args[3]);
+    z = zl[args[1]];
+    if(IS_NULL(z))
+    {
+        z = new ZList;
+        if(IS_NULL(z))
+        {
+            send_msg(socket_fd, ":0\r\n");
+            log_error("memory allocation failed in %s:%d", __FILE__, __LINE__);
+            return false;
+        }
+        zl[args[1]] = z;
+    }
+    int score = 0;
+    if(StringToInt(args[2].c_str(), &score) == false)
+    {
+        send_msg(socket_fd, "-Err score is not a integer or out of range\r\n");
+        return false;
+    }
+    ret = z->ZADD(score, args[3]);
     send_msg(socket_fd, ":%d\r\n", ret);
 
     return true;
@@ -138,21 +161,30 @@ bool Redis::handleZAddCmd(string *args, int count, int socket_fd)
 
 bool Redis::handleZCardCmd(string *args, int count, int socket_fd)
 {
+    ZList *z;
     int ret = 0;
     if(count < 2)
     {
         send_msg(socket_fd, "-Err Wrong number of arguments for 'ZCARD' command\r\n");
         return false;
     }
-
-    ret = zl.ZCARD();
-    send_msg(socket_fd, ":%d\r\n", ret);
+    z = zl[args[1]];
+    if(IS_NULL(z))
+    {
+        send_msg(socket_fd, ":0\r\n");
+    }
+    else
+    {
+        ret = z->ZCARD();
+        send_msg(socket_fd, ":%d\r\n", ret);
+    }
 
     return true;
 }
 
 bool Redis::handleZCountCmd(string *args, int count, int socket_fd)
 {
+    ZList *z;
     int min,max;
     int ret = 0;
     if(count != 4)
@@ -161,6 +193,13 @@ bool Redis::handleZCountCmd(string *args, int count, int socket_fd)
         return false;
     }
 
+    z = zl[args[1]];
+    if(IS_NULL(z))
+    {
+        send_msg(socket_fd, ":0\r\n");
+        return false;
+    }
+    
     if(StringToInt(args[2].c_str(), &min) == false)
     {
         send_msg(socket_fd, "-Err max value is not a integer or out of range\r\n");
@@ -171,8 +210,9 @@ bool Redis::handleZCountCmd(string *args, int count, int socket_fd)
         send_msg(socket_fd, "-Err max value is not a integer or out of range\r\n");
         return false;
     }
+    
     log_msg("Zcount min=%d max=%d", min, max);
-    ret = zl.ZCOUNT(min, max);
+    ret = z->ZCOUNT(min, max);
     send_msg(socket_fd, ":%d\r\n", ret);
 
     return true;
@@ -181,6 +221,7 @@ bool Redis::handleZCountCmd(string *args, int count, int socket_fd)
 
 bool Redis::handleZRangeCmd(string *args, int count, int socket_fd)
 {
+    ZList *z;
     int min,max;
     int ret = 0;
     if(count < 4)
@@ -189,6 +230,12 @@ bool Redis::handleZRangeCmd(string *args, int count, int socket_fd)
         return false;
     }
 
+    z = zl[args[1]];
+    if(IS_NULL(z))
+    {
+        send_msg(socket_fd, "*0\r\n");
+        return false;
+    }
     if(StringToInt(args[2].c_str(), &min) == false)
     {
         send_msg(socket_fd, "-Err min value is not a integer or out of range\r\n");
@@ -200,17 +247,24 @@ bool Redis::handleZRangeCmd(string *args, int count, int socket_fd)
         return false;
     }
 
-    log_msg("ZRange min=%d max=%d", min, max);
-    ret = zl.ZRANGE(min, max, false)+1;
+    ret = z->ZRANGE(min, max, false)+1;
     send_msg(socket_fd, "*%d\r\n", ret);
-    log_msg("*%d\r\n", ret);
 
-    int score;
-    char buffer[1024];
-    while(zl.GetNext(&score, buffer, 1024) && (ret > 0))
+    int score, length = 0;
+    char *buffer;
+    while(z->GetNext(&score, &buffer, &length) && (ret > 0))
     {
-        send_msg(socket_fd, "$%d\r\n%s\r\n", strlen(buffer), buffer);
-        log_msg("$%d\r\n%s\r\n", strlen(buffer), buffer);
+        int rets = 0;
+        /* Varify the return value of send_msg as if the connection is broken then
+         * we have to stop the loop*/
+        rets = send_msg(socket_fd, "$%d\r\n", length);
+        rets += send_binary(socket_fd, buffer, length);
+        rets += send_msg(socket_fd, "\r\n");
+        if(rets <= 0)
+        {
+            log_error("send_msg() failed, could be broken pipe");
+            return false;
+        }
         --ret;
     }
     return true;
@@ -219,18 +273,8 @@ bool Redis::handleZRangeCmd(string *args, int count, int socket_fd)
 bool Redis::Execute(string *args, int count, int socket_fd)
 {
     bool flag = false;
-    map<string, REDIS_CMD> cmd_to_id;
-    cmd_to_id["get"] = REDIS_CMD_GET;
-    cmd_to_id["set"] = REDIS_CMD_SET;
-    cmd_to_id["getbit"] = REDIS_CMD_GETBIT;
-    cmd_to_id["setbit"] = REDIS_CMD_SETBIT;
 
-    cmd_to_id["zadd"] = REDIS_CMD_ZADD;
-    cmd_to_id["zrange"] = REDIS_CMD_ZRANGE;
-    cmd_to_id["zcard"] = REDIS_CMD_ZCARD;
-    cmd_to_id["zcount"] = REDIS_CMD_ZCOUNT;
-
-    std::transform(args[0].begin(), args[0].end(), args[0].begin(), ::tolower);
+    strtolower(args[0]);
     switch(cmd_to_id[args[0]])
     {
         case REDIS_CMD_SET:
@@ -244,6 +288,7 @@ bool Redis::Execute(string *args, int count, int socket_fd)
             break;
         case REDIS_CMD_ZCARD:
             flag = handleZCardCmd(args, count, socket_fd);
+            Save(NULL);
             break;
         case REDIS_CMD_ZRANGE:
             flag = handleZRangeCmd(args, count, socket_fd);
@@ -269,3 +314,134 @@ Redis* Redis::GetInstance(void)
     return Redis::redis;
 }
 
+#include <netinet/in.h>
+#define SET_MAGIC 0xFF00FF43
+#define ZADD_MAGIC 0xFF00FF44
+void Redis::Load(const char *filename)
+{
+    int count = 0;
+    FILE *fp = fopen(filename, "rb");
+    if(!IS_NULL(fp))
+    while(!feof(fp))
+    {
+        uint32_t type = 0;
+        if(fread(&type, 1, 4, fp) != 4)
+            break;
+        switch(ntohl(type))
+        {
+            case SET_MAGIC:
+                {
+                    log_msg("loading");
+                    char buffer[4096], buffer2[4096];
+                    int key_length, data_length;
+
+                    fread(&key_length, 1, 4, fp);
+                    key_length = ntohl(key_length);                    
+                    fread(buffer, 1, key_length, fp);
+
+                    fread(&data_length, 1, 4, fp);
+                    data_length = ntohl(data_length);
+                    fread(buffer2, 1, data_length, fp);
+
+                    kv.SET(string(buffer, key_length), string(buffer2, data_length), 0, false, false);
+                    count++;
+                    break;
+                }
+            case ZADD_MAGIC:
+                {
+                    log_msg("loading");
+                    char buffer[4096] = { 0 }, buffer2[4096] = { 0 };
+                    int key_length, data_length, score;
+
+                    fread(&key_length, 1, 4, fp);
+                    key_length = ntohl(key_length);                    
+                    fread(buffer, 1, key_length, fp);
+
+                    fread(&score, 1, 4, fp);
+                    score = ntohl(score);
+                    fread(&data_length, 1, 4, fp);
+                    data_length = ntohl(data_length);
+                    fread(buffer2, 1, data_length, fp);
+
+                    ZList *z = zl[buffer];
+                    if(IS_NULL(z))
+                    {
+                        z = new ZList;
+                        zl[buffer] = z;
+                    }                    
+                    z->ZADD(score, string(buffer2, data_length));
+                    count++;
+                    break;
+                }
+            default:
+                log_error("invalid type");
+                abort();
+        }
+    }
+    log_error("total number of elements loaded : %d", count);
+    return;
+}
+void Redis::Save(const char *filename)
+{
+    uint8_t *value = NULL;
+    unsigned int length;
+    FILE *fp;
+
+    string str;
+
+    fp = fopen(filename, "wb");
+    if(IS_NULL(fp))
+    {
+        log_error("Unable to open file '%s'", filename);
+        return;
+    }
+    kv.BeginIterator();
+    
+    int count = 0;
+    while(kv.GetNext(&str, &value, &length))
+    {
+        uint32_t type = htonl(SET_MAGIC);
+        int key_length = htonl(str.size());
+        int data_length = htonl(length);
+        fwrite(&type, 1, 4, fp);
+        fwrite(&key_length, 1, 4, fp);
+        fwrite(str.c_str(), 1, str.size(), fp);
+        fwrite(&data_length, 1, 4, fp);
+        fwrite(value, 1, length, fp);       
+        count++;
+    }
+
+    map<string, ZList*>::iterator ii = zl.begin();
+    while(ii != zl.end())
+    {
+        const char *str = ii->first.c_str();
+        int str_size = ii->first.size();
+        int tmp_str_size = htonl(str_size);
+        ZList *z = ii->second;
+        if(IS_NULL(z))
+        {
+            ii++;
+            continue;
+        }
+        int ret = z->ZRANGE(0, -1, false)+1;
+        int score, length = 0;
+        char *buffer;
+        while(z->GetNext(&score, &buffer, &length) && (ret > 0))
+        {
+            uint32_t type = htonl(ZADD_MAGIC);
+            int tmp_buf_len = htonl(length);
+            fwrite(&type, 1, 4, fp);
+            fwrite(&tmp_str_size, 1, 4, fp);
+            fwrite(str, 1, str_size, fp);
+            score = htonl(score);
+            fwrite(&score, 1, 4, fp);
+            fwrite(&tmp_buf_len, 1, 4, fp);
+            fwrite(buffer, 1, length, fp);
+            ret--;
+            count++;
+        }
+        ii++;
+    }
+    log_error("%d elements saved", count);
+    fclose(fp);
+}

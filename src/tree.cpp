@@ -13,6 +13,8 @@
 #include <set>
 using namespace std;
 
+/* Function to set the tree Nodes*/
+
 template <class KEY>
 void Node<KEY>::SetLeftNode(Node<KEY> *left)
 {
@@ -34,6 +36,8 @@ void Node<KEY>::SetRightNode(Node<KEY> *right)
     this->right = right;
     UpdateHeight();
 }
+
+/* Update the entires for the skip list.*/
 
 template <class KEY>
 void Node<KEY>::UpdateLinks(void)
@@ -97,6 +101,7 @@ void Node<KEY>::UpdateLinks(void)
     }
 }
 
+/* These function are used in balancing the AVL tree to maintain height*/
 template <class KEY>
 int Node<KEY>::UpdateHeight(void)
 {
@@ -178,6 +183,7 @@ Tree<KEY>::~Tree()
     }
 }
 
+/*Functions to implement the rotation when there is an imbalance in the tree*/
 template <class KEY>
 void Tree<KEY>::RotateLeft(Node<KEY> *n)
 {
@@ -252,6 +258,12 @@ template <class KEY>
 Node<KEY>* Tree<KEY>::AddNode(const KEY key, const string data)
 {
     Node<KEY> *n = new Node<KEY>(key);
+
+    if(IS_NULL(n))
+    {
+        log_error("new Node(). failed");
+        return NULL;
+    }
     if(IS_NULL(this->root))
     {
         num_keys++;
@@ -504,7 +516,7 @@ Node<KEY>* Tree<KEY>::GetNthElement(const int nth, int *rth)
         return NULL;
     }
     Node<KEY> *n = NULL;
-    if(nth < (int)(num_elements/2))
+    if(nth <= (int)(num_elements/2))
     {
         int tmp_count = this->first->GetCount();
         n = this->first;

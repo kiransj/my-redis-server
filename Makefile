@@ -1,6 +1,6 @@
-CPP:=c++
-CFLAGS := -g3 
-#CFLAGS := -O2
+CPP:=g++
+CFLAGS := -g3
+#CFLAGS := -O3
 WARNINGS:= -Wall
 
 INCLUDES := -I./inc

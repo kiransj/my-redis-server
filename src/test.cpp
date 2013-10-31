@@ -42,10 +42,11 @@ int test_zlist(int argc, char *argv[])
         ret = zl.ZRANGE(min, max, false)+1;
         if(ret > 0)
         {
-            char str[1024];
+            char *str;
             int key = 0, count = 0;
-            while(zl.GetNext(&key, str, 1024) && (ret > 0))
+            while(zl.GetNext(&key, &str, &count) && (ret > 0))
             {
+                str[count] = 0;
                 cout<<++count<<"> "<<key<<" = "<<str<<endl;
                 --ret;
             }
@@ -175,10 +176,26 @@ void DataHandler(const char *buf, const int len, const int socket_fd)
     }
 }
 
+#include <signal.h>
+
+
+static char *filename;
+void my_handler(int s)
+{
+    Redis::GetInstance()->Save(filename);
+    exit(1);
+}
 int start_server(void (*data_handler)(const char *buf, const int len, const int socket_fd));
 int main(int argc, char *argv[])
 {
-//    test_zlist(argc, argv);
+    if(argc != 2)
+    {
+        log_error("usage %s <filename>", argv[0]);
+    }
+    filename = argv[1];
+    Redis::GetInstance()->Load(filename);
+    signal(SIGINT, my_handler);
+    signal(SIGPIPE, SIG_IGN);
     start_server(DataHandler);
 }
 

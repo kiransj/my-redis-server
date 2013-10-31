@@ -16,5 +16,7 @@ void enable_debug_msg(void);
 void disable_debug_msg(void);
 
 void log_msg(const char *format, ...);
+void log_error(const char *format, ...);
 int send_msg(int socket_fd, const char *format, ...);
+int send_binary(int socket_fd, char *buf, int length);
 #endif

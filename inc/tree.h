@@ -21,6 +21,7 @@ class Node
          * Used in implementing zrange*/
         Node *front_link, *back_link;
         int count;
+
         /*Key and Data associated with it*/
         KEY            key;
         set<string>    values;
@@ -40,23 +41,21 @@ class Node
             parent = left = right = prev = next = NULL;
         }
 
-        set<string>& GetData(void) { return values; }
-        
-        void UpdateLinks(void);
+        /* Function to get and set data*/
         bool SetData(string data) { if(values.insert(data).second == true) {  UpdateLinks(); return true;} return false; }
-
-
-        Node<KEY>* GetFrontLink(void) { return front_link; }
-        Node<KEY>* GetBackLink(void) { return back_link; }
-        
-        int GetCount(void) { return count; }
-        int GetHeight(void) { return height;}
+        set<string>& GetData(void) { return values; }
+        int GetCount(void) { return count; }        
         KEY GetKey(void) { return key; }
+        
+        /* Function the maintain the skip list data structure*/
+        void UpdateLinks(void);        
+        Node<KEY>* GetFrontLink(void) { return front_link; }
+        Node<KEY>* GetBackLink(void) { return back_link; }       
+
+        /* Function used to maintain the tree*/
+        int GetHeight(void) { return height;}
         int UpdateHeight(void);
         int GetBalance(void);
-
-        void InsertBefore(Node<KEY> *node);
-        void InsertAfter(Node<KEY> *node);
 
         void SetLeftNode(Node *left);
         void SetRightNode(Node *right);
@@ -66,6 +65,10 @@ class Node
         Node<KEY>* GetLeft(void) { return left; }
         Node<KEY>* GetRight(void) { return right; }
         Node<KEY>* GetParent(void) { return parent; }
+
+        /* Function to maintain the Doubly linked list*/
+        void InsertBefore(Node<KEY> *node);
+        void InsertAfter(Node<KEY> *node);
         Node<KEY>* GetPrev(void) { return prev; }
         Node<KEY>* GetNext(void) { return next; }
 };
@@ -83,12 +86,17 @@ class Tree
         Node<KEY> *first, *last;
 
     private:  /*Priv functions*/
+
+        /* Functions used in balancing the tree when there is a imbalance*/
         void RotateLeft(Node<KEY> *n);
         void RotateRight(Node<KEY> *n);
         void BalanceAt(Node<KEY> *n);
         
+        /* Get the first and last node in the doubly linked list*/
         void SetLast(Node<KEY> *n);
         void SetFirst(Node<KEY> *n);
+
+        /*debug function*/
         static int  height_priv(Node<KEY> *n);
         static void preorder_priv(Node<KEY> *n);
         static void inorder_priv(Node<KEY> *n);
@@ -116,10 +124,13 @@ class Tree
         Node<KEY>* FindNear(KEY key);
 
         Node<KEY>* GetKeyNodeAndNumber(const KEY key, int *rank);
-        /*
-         * */
+
+        /* This function finds the nth element in the doubly linked list.
+         * Uses the skip list data structure*/
         Node<KEY>* GetNthElement(const int nth, int *rth);
         int GetKeys(void) { return num_keys; }
+
+        /*Debug functions*/
         int  Height(void);
         void PreOrder(void);
         void InOrder(void);

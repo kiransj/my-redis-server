@@ -35,7 +35,7 @@ class ZList
 
         void check(void) { tr.CheckList(); }
 
-        int GetNext(int *key, char *str, int str_len);
+        int GetNext(int *key, char **str, int *length);
 };
 
 #endif

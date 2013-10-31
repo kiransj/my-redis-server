@@ -12,17 +12,17 @@ long long GetTime(void)
 }
 int BitArray::SetString(const uint8_t *data, const uint32_t sz)
 {
-    if(size < sz)
+    if(size <= sz)
     {
-        array = (uint8_t*)realloc(array, sz);
+        array = (uint8_t*)realloc(array, sz+1);
         if(IS_NULL(array))
         {
             log_msg("realloc(%u) failed", sz);
             return 0;
         }
-        size = sz;
+        size = sz+1;
     }
-
+    length = sz;
     memcpy(array, data, sz);
     memset(&array[sz], 0, size - sz);
     return 1;
@@ -31,7 +31,8 @@ int BitArray::SetString(const uint8_t *data, const uint32_t sz)
 const char * BitArray::GetString(uint32_t * const length)
 {
     if(!IS_NULL(length))
-        *length = size;
+        *length = this->length;
+    array[this->length] = 0;
     return (char*)array;
 }
 
@@ -62,7 +63,7 @@ int BitArray::GetBit(const uint32_t bit_number)
 
     return array[byte] & bit ? 1 : 0;
 }
-bool KeyValue::SET(string key, string value, time_t milli_seconds, bool NX, bool XX)
+bool KeyValue::SET(const string &key, const string &value, const time_t milli_seconds, const bool NX, const bool XX)
 {
     Value *v = dict[key];
 
@@ -86,7 +87,7 @@ bool KeyValue::SET(string key, string value, time_t milli_seconds, bool NX, bool
     dict[key] = v;
     return true;
 }
-bool KeyValue::GET(string key, BitArray **b)
+bool KeyValue::GET(const string key, BitArray **b)
 {
     Value *v = dict[key];
     if(!IS_NULL(v))

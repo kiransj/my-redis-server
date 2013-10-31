@@ -115,7 +115,7 @@ int ZList::ZRANGE(int min, int max, bool WITHSCORES)
 }
 
 
-int ZList::GetNext(int *key, char *str, int str_len)
+int ZList::GetNext(int *key, char **str,  int *length)
 {
     if(IS_NULL(n)) 
     {
@@ -126,7 +126,8 @@ int ZList::GetNext(int *key, char *str, int str_len)
     if(ii != n->GetData().end())
     {
         *key = n->GetKey();
-        snprintf(str, str_len, "%s", ii->c_str());
+        *str = (char*)ii->c_str();
+        *length = ii->size();
         ii++;
         return 1;
     }
@@ -138,7 +139,8 @@ int ZList::GetNext(int *key, char *str, int str_len)
         if(ii != n->GetData().end())
         {
             *key = n->GetKey();
-            snprintf(str, str_len, "%s", ii->c_str());
+            *length = ii->size();
+            *str = (char*)ii->c_str();
             ++ii;
             return 1;
         }

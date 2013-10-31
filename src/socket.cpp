@@ -13,7 +13,7 @@
 
 #include "util.h"
 
-#define DEFAULT_PORT  15000
+#define DEFAULT_PORT  15001
 #define MAX_CONN      1024
 #define TIMEOUT       10000
 #define POLL_ERR      (-1)
@@ -41,17 +41,17 @@ int start_server(void (*data_handler)(const char *buf, const int len, const int 
 
     if(bind(socket_fd, (struct sockaddr *) &sock, sizeof(struct sockaddr_in)) < 0)
     {
-        log_msg("bind() call failed");
+        printf("bind() call failed\n");
         close(socket_fd);
         exit(1);
     }
     if(setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &tmp, sizeof(int)) < 0)
     {
-        log_msg("setsockopt call failed");
+        printf("setsockopt call failed\n");
     }        
     if(listen(socket_fd, 10) < 0)
     {
-        log_msg("listen() call failed");
+        printf("listen() call failed\n");
         close(socket_fd);
         exit(1);
     }
@@ -68,7 +68,7 @@ int start_server(void (*data_handler)(const char *buf, const int len, const int 
         }
         else if(ret == POLL_ERR)
         {
-            log_msg("Error in POLL aborting %s", strerror(errno));
+            printf("Error in POLL aborting %s\n", strerror(errno));
             break;
         }
         else

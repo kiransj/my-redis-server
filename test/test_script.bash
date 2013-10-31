@@ -1,8 +1,13 @@
-count=1
-while [ $count -le 32140 ]
+count=0
+while [ $count -le 132140 ]
 do
-    r=$RANDOM
     count=$[$count+1]
-    echo zadd myset $r "$r"
+    echo zadd myset:$count "$count"
 done
-echo zcard myset
+
+#count=1
+#while [ $count -le 112345 ]
+#do
+#    echo set myset:$count "$count"
+#    count=$[$count+1]
+#done
