@@ -7,7 +7,7 @@ using namespace std;
 
 Redis *Redis::redis = NULL;
 
-void strtolower(string &str)
+string strtolower(string &str)
 {
     int len = str.length(), i = 0;
     while(i < len)
@@ -15,6 +15,7 @@ void strtolower(string &str)
         str[i] = tolower(str[i]);
         i++;
     }
+    return str;
 }
 
 bool StringToInt(const char *s, int *num)
@@ -248,8 +249,11 @@ bool Redis::handleZRangeCmd(string *args, int count, int socket_fd)
         return false;
     }
     
-    if(count == 5 && (args[4] == "withscores"))
+    if(count == 5 && (strlower(args[4]) == "withscores"))
+    {
+        log_error("withscores");
         withscores = 2;
+    }
 
     ret = z->ZRANGE(min, max, false)+1;
     send_msg(socket_fd, "*%d\r\n", ret * withscores);
@@ -269,10 +273,13 @@ bool Redis::handleZRangeCmd(string *args, int count, int socket_fd)
             log_error("send_msg() failed, could be broken pipe");
             return false;
         }
-        char buffer[16];
-        int len;
-        len = snprintf(buffer, 16, "%d", score);
-        send_msg(socket_fd, "$%d\r\n%s\r\n", len, buffer);
+        if(withscores == 2)
+        {
+            char buffer[16];
+            int len;
+            len = snprintf(buffer, 16, "%d", score);
+            send_msg(socket_fd, "$%d\r\n%s\r\n", len, buffer);
+        }
         --ret;
     }
     return true;
@@ -282,8 +289,7 @@ bool Redis::Execute(string *args, int count, int socket_fd)
 {
     bool flag = false;
 
-    strtolower(args[0]);
-    switch(cmd_to_id[args[0]])
+    switch(cmd_to_id[strtolower(args[0])])
     {
         case REDIS_CMD_SET:
             flag = handleSetCmd(args, count, socket_fd);

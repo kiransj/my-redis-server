@@ -1,5 +1,5 @@
 CPP:=g++
-CFLAGS := -g3
+CFLAGS := -g
 #CFLAGS := -O3
 WARNINGS:= -Wall
 

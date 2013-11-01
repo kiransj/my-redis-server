@@ -103,13 +103,13 @@ int start_server(void (*data_handler)(const char *buf, const int len, const int 
                     if(len == 0)
                     {
                         close(fds[i].fd);
-                        log_msg("fd %d closed I guess", fds[i].fd);
-                        if(i < (num_of_fd-1))
+                        log_error("fd %d closed I guess", fds[i].fd);
+                        if(i != (num_of_fd-1))
                         {
                             memcpy(&fds[i], &fds[num_of_fd-1], sizeof(struct pollfd));
                             i--;                            
                         }
-                        num_of_fd--;                        
+                        num_of_fd--;
                     }
                     else
                     {
