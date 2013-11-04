@@ -32,6 +32,7 @@ class Value
         Value() { exp_time = 0; }
 };
 
+/*This class is used for implementing SET, GET, SETBIT, GETBIT commands*/
 class KeyValue
 {
     private:
@@ -49,30 +50,7 @@ class KeyValue
         bool SETBIT(string key, uint32_t bit_number, bool bit_value);
 
         void BeginIterator(void) { ii = dict.begin(); }
-        bool GetNext(string *key, uint8_t **value, uint32_t *value_size)        
-        {
-        again:            
-            if(ii != dict.end())
-            {
-                *key = ii->first;
-                if(ii->second != NULL)
-                {
-                    *value = (uint8_t*)ii->second->b.GetString(value_size);
-                    (*value)[*value_size] = 0;
-                }
-                else
-                {
-//                    cout<<"invalid Key : "<<*key<<endl;
-                    *value = NULL;
-                    *value_size = 0;
-                     ii++;
-                    goto again;
-                }                
-                ii++;
-                return true;
-            }
-            return false;
-        }
+        bool GetNext(string *key, uint8_t **value, uint32_t *value_size);
 };
 
 #endif

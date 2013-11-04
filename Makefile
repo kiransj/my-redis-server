@@ -13,7 +13,7 @@ CPP_FILES += src/zlist.cpp
 CPP_FILES += src/keyvalue.cpp
 CPP_FILES += src/redis.cpp
 CPP_FILES += src/socket.cpp
-CPP_FILES += src/test.cpp
+CPP_FILES += src/main.cpp
 
 CPP_OBJECTS := $(CPP_FILES:.cpp=.o)    
 

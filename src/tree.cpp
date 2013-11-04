@@ -81,7 +81,7 @@ void Node<KEY>::UpdateLinks(void)
         this->back_link = first;
     }
 
-    if(first->count >= 200)    
+    if(first->count >= 200)
     {
         unsigned int tmp_count = first->values.size();
         Node<KEY> *tmp = first;
@@ -139,7 +139,7 @@ int Node<KEY>::GetBalance(void)
     else if(!IS_NULL(this->right))
     {
         balance = (this->right->height + 1) * (-1);
-    }   
+    }
     return balance;
 }
 
@@ -196,7 +196,7 @@ void Tree<KEY>::RotateLeft(Node<KEY> *n)
     }
     n->SetRightNode(temp->GetLeft());
     temp->SetLeftNode(n);
-    
+
     if(!IS_NULL(p))
     {
         (side == LEFT) ? (p->SetLeftNode(temp)) : (p->SetRightNode(temp));
@@ -204,7 +204,7 @@ void Tree<KEY>::RotateLeft(Node<KEY> *n)
     else
     {
         this->root = temp;
-        temp->SetParentNode(NULL); 
+        temp->SetParentNode(NULL);
     }
 }
 
@@ -220,7 +220,7 @@ void Tree<KEY>::RotateRight(Node<KEY> *n)
     }
     n->SetLeftNode(temp->GetRight());
     temp->SetRightNode(n);
-    
+
     if(!IS_NULL(p))
     {
         (side == LEFT) ? (p->SetLeftNode(temp)) : (p->SetRightNode(temp));
@@ -228,7 +228,7 @@ void Tree<KEY>::RotateRight(Node<KEY> *n)
     else
     {
         this->root = temp;
-        temp->SetParentNode(NULL); 
+        temp->SetParentNode(NULL);
     }
 }
 
@@ -330,7 +330,7 @@ Node<KEY>* Tree<KEY>::AddNode(const KEY key, const string data)
         this->BalanceAt(tmp);
         tmp = tmp->GetParent();
     }
-    return n;   
+    return n;
 }
 
 template <class KEY>
@@ -374,7 +374,7 @@ Node<KEY>* Tree<KEY>::FindNear(KEY key)
         else
         {
             return tmp;
-        }    
+        }
     }
 
     while(!IS_NULL(tmp1) && (key > tmp1->GetKey()))
@@ -542,7 +542,7 @@ Node<KEY>* Tree<KEY>::GetNthElement(const int nth, int *rth)
         while(tmp_count >= nth)
         {
             n = n->GetBackLink();
-            tmp_count -= n->GetCount(); 
+            tmp_count -= n->GetCount();
         }
         while(tmp_count < nth)
         {

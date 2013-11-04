@@ -27,7 +27,7 @@ int ZList::ZCOUNT(int min, int max)
 {
     int count = 0;
     Node<int> *n;
-    if(min < 0 && (min > max) && (min >= count)) 
+    if(min < 0 && (min > max) && (min >= count))
     {
         return 0;
     }
@@ -59,7 +59,7 @@ int ZList::ZRANK(string data)
                     break;
                 }
                 rank++;
-            } 
+            }
         }
     }
     return rank;
@@ -73,7 +73,7 @@ int ZList::ZSCORE(string data)
 
 int ZList::ZRANGE(int min, int max, bool WITHSCORES)
 {
-    int Min, Max; 
+    int Min, Max;
     int rth = 0;
     if(min < 0)
         min = tr.GetNumElements() + min;
@@ -91,7 +91,7 @@ int ZList::ZRANGE(int min, int max, bool WITHSCORES)
         max = tr.GetNumElements();
 
     n = tr.GetNthElement(min, &rth);
-    
+
     rth = min - rth;
 
     Min = min;
@@ -111,13 +111,13 @@ int ZList::ZRANGE(int min, int max, bool WITHSCORES)
         }
         n = n->GetNext();
     }
-    return -1; 
+    return -1;
 }
 
 
 int ZList::GetNext(int *key, char **str,  int *length)
 {
-    if(IS_NULL(n)) 
+    if(IS_NULL(n))
     {
         n = NULL;
         return 0;

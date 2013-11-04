@@ -117,7 +117,7 @@ bool KeyValue::GETBIT(string key, uint32_t bit_number)
 }
 /* Returns Original Bit value stored at offset*/
 bool KeyValue::SETBIT(string key, uint32_t bit_number, bool bit_value)
-{   
+{
     Value *v = dict[key];
     bool flag = false;
     if(!IS_NULL(v))
@@ -147,5 +147,34 @@ KeyValue::~KeyValue()
         delete ii->second;
         ii++;
     }
+}
+
+bool KeyValue::GetNext(string *key, uint8_t **value, uint32_t *value_size)
+{
+    while(ii != dict.end())
+    {
+        if(ii->second != NULL)
+        {
+            if((0 != ii->second->exp_time) && (ii->second->exp_time < GetTime()))
+            {
+                dict.erase(ii->first);
+                ii++;
+                continue;
+            }
+            *key = ii->first;
+            *value = (uint8_t*)ii->second->b.GetString(value_size);
+            (*value)[*value_size] = 0;
+        }
+        else
+        {
+            *value = NULL;
+            *value_size = 0;
+            ii++;
+            continue;
+        }
+        ii++;
+        return true;
+    }
+    return false;
 }
 
