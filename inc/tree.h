@@ -44,13 +44,13 @@ class Node
         /* Function to get and set data*/
         bool SetData(string data) { if(values.insert(data).second == true) {  UpdateLinks(); return true;} return false; }
         set<string>& GetData(void) { return values; }
-        int GetCount(void) { return count; }        
+        int GetCount(void) { return count; }
         KEY GetKey(void) { return key; }
-        
+
         /* Function the maintain the skip list data structure*/
-        void UpdateLinks(void);        
+        void UpdateLinks(void);
         Node<KEY>* GetFrontLink(void) { return front_link; }
-        Node<KEY>* GetBackLink(void) { return back_link; }       
+        Node<KEY>* GetBackLink(void) { return back_link; }
 
         /* Function used to maintain the tree*/
         int GetHeight(void) { return height;}
@@ -91,7 +91,7 @@ class Tree
         void RotateLeft(Node<KEY> *n);
         void RotateRight(Node<KEY> *n);
         void BalanceAt(Node<KEY> *n);
-        
+
         /* Get the first and last node in the doubly linked list*/
         void SetLast(Node<KEY> *n);
         void SetFirst(Node<KEY> *n);
@@ -110,14 +110,14 @@ class Tree
         }
         int GetNumElements(void) { return num_elements; }
         ~Tree();
-        /* This function adds a given node (the node has a key) to the tree. 
+        /* This function adds a given node (the node has a key) to the tree.
          * The different cases handled.
          * 1. Key Not present: Adds the node to the tree and returns the added node.
-         * 2. Key present: returns the old node with same key and does not add the new node. 
+         * 2. Key present: returns the old node with same key and does not add the new node.
          * */
         Node<KEY>* AddNode(const KEY n, const string data);
 
-        /* Finds a given node (with key set) in the tree. 
+        /* Finds a given node (with key set) in the tree.
          * if found returns the node else NULL
          * */
         Node<KEY>* FindNode(KEY key);

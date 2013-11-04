@@ -43,7 +43,7 @@ class Redis
         bool handleSaveCmd(string *args, int count, int socket_fd);
     public:
         Redis()
-        {            
+        {
             cmd_to_id["get"] = REDIS_CMD_GET;
             cmd_to_id["set"] = REDIS_CMD_SET;
             cmd_to_id["getbit"] = REDIS_CMD_GETBIT;
@@ -59,7 +59,7 @@ class Redis
         void Save(const char *filename);
         void Load(const char *filename);
         bool Execute(string *args, int count, int socket_fd);
-        static Redis* GetInstance(void);        
+        static Redis* GetInstance(void);
 };
 
 #endif

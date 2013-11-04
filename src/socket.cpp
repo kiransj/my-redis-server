@@ -13,13 +13,13 @@
 
 #include "util.h"
 
-#define DEFAULT_PORT  15000
+#define DEFAULT_PORT  16000
 #define MAX_CONN      4096
 #define TIMEOUT       10000
 #define POLL_ERR      (-1)
 #define POLL_EXPIRE   (0)
 
-int start_server(void (*data_handler)(const char *buf, const int len, const int socket_fd))
+int start_server(void (*data_handler)(const char *buf, const int len, const int socket_fd), int port_number)
 {
     int num_of_fd = 0;
     struct pollfd fds[MAX_CONN];
@@ -34,8 +34,10 @@ int start_server(void (*data_handler)(const char *buf, const int len, const int 
         log_msg("socket() call failed");
         exit(1);
     }
+
+    port_number = (0 == port_number) ? DEFAULT_PORT : port_number;
     sock.sin_family = AF_INET;
-    sock.sin_port = htons(DEFAULT_PORT);
+    sock.sin_port = htons(port_number);
     len = INADDR_ANY;
     memset(&sock.sin_addr, len, sizeof(struct in_addr));
 
@@ -48,14 +50,14 @@ int start_server(void (*data_handler)(const char *buf, const int len, const int 
     if(setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &tmp, sizeof(int)) < 0)
     {
         printf("setsockopt call failed\n");
-    }        
+    }
     if(listen(socket_fd, 10) < 0)
     {
         printf("listen() call failed\n");
         close(socket_fd);
         exit(1);
     }
-
+    log_error("listening on port %d", port_number);
     fds[0].fd = socket_fd;
     fds[0].events = POLLIN;
     num_of_fd++;
@@ -74,7 +76,7 @@ int start_server(void (*data_handler)(const char *buf, const int len, const int 
         else
         {
             if(fds[0].revents & POLLIN)
-            {                
+            {
                 socklen_t len = sizeof(struct sockaddr_in);
                 int new_socket = accept(socket_fd, (struct sockaddr *)&sock, &len);
                 if(num_of_fd < MAX_CONN)
@@ -82,7 +84,7 @@ int start_server(void (*data_handler)(const char *buf, const int len, const int 
                     fds[num_of_fd].fd = new_socket;
                     fds[num_of_fd].events = POLLIN;
                     fds[num_of_fd].revents = 0;
-                    num_of_fd++;                    
+                    num_of_fd++;
                     log_msg("new incoming connection");
                 }
                 else
@@ -91,7 +93,7 @@ int start_server(void (*data_handler)(const char *buf, const int len, const int 
                 }
                 num_processed++;
             }
-            
+
             for(int i = 1; (i < num_of_fd) && (num_processed < ret); i++)
             {
                 num_processed++;
@@ -103,11 +105,11 @@ int start_server(void (*data_handler)(const char *buf, const int len, const int 
                     if(len == 0)
                     {
                         close(fds[i].fd);
-                        log_error("fd %d closed I guess %d", fds[i].fd, num_of_fd);
+                        log_msg("fd %d closed I guess %d", fds[i].fd, num_of_fd);
                         if(i != (num_of_fd-1))
                         {
                             memcpy(&fds[i], &fds[num_of_fd-1], sizeof(struct pollfd));
-                            i--;                            
+                            i--;
                         }
                         num_of_fd--;
                     }
@@ -123,9 +125,9 @@ int start_server(void (*data_handler)(const char *buf, const int len, const int 
                     if(i < (num_of_fd-1))
                     {
                         memcpy(&fds[i], &fds[num_of_fd-1], sizeof(struct pollfd));
-                        i--;                            
+                        i--;
                     }
-                    num_of_fd--;                        
+                    num_of_fd--;
                 }
                 else if(fds[i].revents != 0)
                 {
