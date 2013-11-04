@@ -10,10 +10,11 @@ using namespace std;
 
 char *filename;
 
-/* This function loops continously to new incoming connections
- * or data*/
+/* This function loops continously looking
+ * for new incoming connections or data*/
 int start_server(void (*data_handler)(const char *buf, const int len, const int socket_fd), int port_number);
 
+/*Expects contents in buf to be in redix protocol format*/
 string* ParseRedixProtocol(const char *buf, const int len, int *count)
 {
     string *s = NULL;
@@ -62,6 +63,7 @@ string* ParseRedixProtocol(const char *buf, const int len, int *count)
     return s;
 }
 
+/* The callback from socket loop*/
 void DataHandler(const char *buf, const int len, const int socket_fd)
 {
     string *s;
@@ -74,10 +76,11 @@ void DataHandler(const char *buf, const int len, const int socket_fd)
     }
     else
     {
-        send_msg(socket_fd,"-Err Please send command using Redis protocol only\n");
+        send_msg(socket_fd,"-Err Please send command using Redis protocol only\r\n");
     }
 }
 
+/*Function that gets called when ctrl-c is pressed*/
 void my_handler(int s)
 {
     Redis::GetInstance()->Save(filename);
@@ -95,9 +98,18 @@ int main(int argc, char *argv[])
     filename = argv[1];
     if(argc == 3)
         port_number = atoi(argv[2]);
+
+    /*Enable debug msg's*/
+    //enable_debug_msg();
+
+    /* load the database*/
     Redis::GetInstance()->Load(filename);
+    /*Register our signal handlers*/
     signal(SIGINT, my_handler);
     signal(SIGPIPE, SIG_IGN);
+
+    /*start the socket server.
+     * DataHandler() is the callback function for the data received*/
     start_server(DataHandler, port_number);
 
     return 0;

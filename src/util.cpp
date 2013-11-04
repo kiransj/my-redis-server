@@ -11,10 +11,10 @@ void log_msg(const char *format, ...)
 {
     if(debug_flag)
     {
-        char buffer[1024];
+        char buffer[4096];
         va_list ap;
         va_start(ap, format);
-        vsnprintf(buffer, 1024, format, ap);
+        vsnprintf(buffer, 4096, format, ap);
         printf("%d> %s\n", ++line_number, buffer);
     }
     return;
@@ -40,7 +40,7 @@ int send_msg(int socket_fd, const char *format, ...)
     va_list ap;
     char buffer[4096];
     va_start(ap, format);
-    n = vsnprintf(buffer, 4906, format, ap);
+    n = vsnprintf(buffer, 4096, format, ap);
     if(n > 4096)
     {
         char *buf = (char*)malloc(n+1);
