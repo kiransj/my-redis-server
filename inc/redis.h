@@ -19,6 +19,7 @@ typedef enum
     REDIS_CMD_ZRANGE,
     REDIS_CMD_ZCARD,
     REDIS_CMD_ZCOUNT,
+    REDIS_CMD_SAVE,
 }REDIS_CMD;
 
 class Redis
@@ -31,12 +32,15 @@ class Redis
         KeyValue               kv;
         static Redis           *redis;
 
+        bool handleSetBitCmd(string *args, int count, int socket_fd);
+        bool handleGetBitCmd(string *args, int count, int socket_fd);
         bool handleGetCmd(string *args, int count, int socket_fd);
         bool handleSetCmd(string *args, int count, int socket_fd);
         bool handleZAddCmd(string *args, int count, int socket_fd);
         bool handleZCardCmd(string *args, int count, int socket_fd);
         bool handleZCountCmd(string *args, int count, int socket_fd);
         bool handleZRangeCmd(string *args, int count, int socket_fd);
+        bool handleSaveCmd(string *args, int count, int socket_fd);
     public:
         Redis()
         {            
@@ -49,6 +53,7 @@ class Redis
             cmd_to_id["zrange"] = REDIS_CMD_ZRANGE;
             cmd_to_id["zcard"] = REDIS_CMD_ZCARD;
             cmd_to_id["zcount"] = REDIS_CMD_ZCOUNT;
+            cmd_to_id["save"] = REDIS_CMD_SAVE;
 
         }
         void Save(const char *filename);

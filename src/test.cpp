@@ -143,11 +143,12 @@ string* ParseRedixProtocol(const char *buf, const int len, int *count)
     log_msg("num of arguments : %d", num_args);
     s = new string[num_args];
     *count = num_args;
-    for(int i = 0; i < num_args; i++)
+    int i;
+    for(i = 0; (i < num_args) && (idx < len); i++)
     {
         idx++;
         int num = 0;
-        while(buf[idx] != '\r')
+        while((buf[idx] != '\r') && (idx < len))
         {
             num = (num)*10 + (buf[idx] - '0');
             idx++;
@@ -157,6 +158,12 @@ string* ParseRedixProtocol(const char *buf, const int len, int *count)
         idx += num+2;        
     }
     
+    if(i != num_args)
+    {
+        log_error("Input is not formed correctly. Ignoring this command");
+        delete[] s;
+        return NULL;
+    }
     return s;
 }
 
@@ -179,7 +186,7 @@ void DataHandler(const char *buf, const int len, const int socket_fd)
 #include <signal.h>
 
 
-static char *filename;
+char *filename;
 void my_handler(int s)
 {
     Redis::GetInstance()->Save(filename);
@@ -191,6 +198,7 @@ int main(int argc, char *argv[])
     if(argc != 2)
     {
         log_error("usage %s <filename>", argv[0]);
+        exit(1);
     }
     filename = argv[1];
     Redis::GetInstance()->Load(filename);

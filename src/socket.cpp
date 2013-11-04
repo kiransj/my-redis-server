@@ -13,8 +13,8 @@
 
 #include "util.h"
 
-#define DEFAULT_PORT  15001
-#define MAX_CONN      1024
+#define DEFAULT_PORT  15000
+#define MAX_CONN      4096
 #define TIMEOUT       10000
 #define POLL_ERR      (-1)
 #define POLL_EXPIRE   (0)
@@ -103,7 +103,7 @@ int start_server(void (*data_handler)(const char *buf, const int len, const int 
                     if(len == 0)
                     {
                         close(fds[i].fd);
-                        log_error("fd %d closed I guess", fds[i].fd);
+                        log_error("fd %d closed I guess %d", fds[i].fd, num_of_fd);
                         if(i != (num_of_fd-1))
                         {
                             memcpy(&fds[i], &fds[num_of_fd-1], sizeof(struct pollfd));
@@ -119,8 +119,7 @@ int start_server(void (*data_handler)(const char *buf, const int len, const int 
                 else if(fds[i].revents & POLLERR || (fds[i].revents & POLLNVAL))
                 {
                     log_msg("fd = %d POLLERR|POLLNVAL", fds[i].fd);
-                    if(fds[i].revents & POLLERR)
-                        close(fds[i].fd);
+                    close(fds[i].fd);
                     if(i < (num_of_fd-1))
                     {
                         memcpy(&fds[i], &fds[num_of_fd-1], sizeof(struct pollfd));

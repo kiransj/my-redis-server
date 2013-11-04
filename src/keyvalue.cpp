@@ -38,30 +38,31 @@ const char * BitArray::GetString(uint32_t * const length)
 
 int BitArray::SetBit(const uint32_t bit_number, const bool value)
 {
-    uint32_t byte = bit_number >> 8, bit = 1 << (bit_number % 8);
+    uint32_t byte = bit_number >> 3, bit = 1 << (7 - (bit_number % 8));
     if(byte >= size)
     {
         array = (uint8_t *)realloc(array, byte+1);
         memset(&array[size], 0, byte + 1 - size);
         size = byte+1;
+        length = size;
     }
     if(value == true)
         array[byte] |= bit;
     else
         array[byte] = (array[byte] & (~bit));
 
-    return 0;
+    return 1;
 }
 
 int BitArray::GetBit(const uint32_t bit_number)
 {
-    uint32_t byte = bit_number >> 8, bit = 1 << (bit_number % 8);
+    uint32_t byte = bit_number >> 3, bit = 1 << (7 - (bit_number % 8));
     if(byte >= size)
     {
         return 0;
     }
 
-    return array[byte] & bit ? 1 : 0;
+    return (array[byte] & bit) ? 1 : 0;
 }
 bool KeyValue::SET(const string &key, const string &value, const time_t milli_seconds, const bool NX, const bool XX)
 {
@@ -80,11 +81,12 @@ bool KeyValue::SET(const string &key, const string &value, const time_t milli_se
             log_msg("no memory");
             return false;
         }
+        dict[key] = v;
     }
     v->b.SetString((const uint8_t *)value.c_str(), value.size());
     if(milli_seconds)
         v->exp_time = GetTime() + milli_seconds;
-    dict[key] = v;
+
     return true;
 }
 bool KeyValue::GET(const string key, BitArray **b)
@@ -122,6 +124,17 @@ bool KeyValue::SETBIT(string key, uint32_t bit_number, bool bit_value)
     {
         flag = v->b.GetBit(bit_number);
         v->b.SetBit(bit_number, bit_value);
+    }
+    else
+    {
+        v = new Value;
+        if(IS_NULL(v))
+        {
+            log_msg("no memory");
+            return false;
+        }
+        v->b.SetBit(bit_number, bit_value);
+        dict[key] = v;
     }
     return flag;
 }

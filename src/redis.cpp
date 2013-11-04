@@ -40,7 +40,7 @@ bool StringToInt(const char *s, int *num)
             return false;
         }
         idx++;
-    }    
+    }
     *num = number * sign;
     return true;
 }
@@ -112,10 +112,23 @@ bool Redis::handleGetCmd(string *args, int count, int socket_fd)
 
     if(kv.GET(args[1], &b) == true)
     {
-        uint32_t size = 0;
+        char *buffer;
+        uint32_t size = 0, len;
         const char *str;
         str = (char*)b->GetString(&size);
-        send_msg(socket_fd, "$%d\r\n%s\r\n", size, str);
+        buffer = (char*)malloc(size+30);
+        if(IS_NULL(buffer))
+        {
+            log_error("malloc(%d) failed", size+30);
+            return false;
+        }
+        len = snprintf(buffer, size+30, "$%d\r\n", size);
+        memcpy(&buffer[len], str, size);
+        len += size;
+        buffer[len++] = '\r';
+        buffer[len++] = '\n';
+        send_binary(socket_fd,  (char*)buffer, len);
+        free(buffer);
     }
     else
     {
@@ -228,7 +241,7 @@ bool Redis::handleZRangeCmd(string *args, int count, int socket_fd)
     int ret = 0;
     if(count < 4)
     {
-        send_msg(socket_fd, "-Err Wrong number of arguments for 'ZCOUNT' command\r\n");
+        send_msg(socket_fd, "-Err Wrong number of arguments for 'ZRange' command\r\n");
         return false;
     }
 
@@ -249,7 +262,7 @@ bool Redis::handleZRangeCmd(string *args, int count, int socket_fd)
         return false;
     }
     
-    if(count == 5 && (strlower(args[4]) == "withscores"))
+    if(count == 5 && (strtolower(args[4]) == "withscores"))
     {
         log_error("withscores");
         withscores = 2;
@@ -262,16 +275,28 @@ bool Redis::handleZRangeCmd(string *args, int count, int socket_fd)
     char *buffer;
     while(z->GetNext(&score, &buffer, &length) && (ret > 0))
     {
-        int rets = 0;
-        /* Varify the return value of send_msg as if the connection is broken then
-         * we have to stop the loop*/
-        rets = send_msg(socket_fd, "$%d\r\n", length);
-        rets += send_binary(socket_fd, buffer, length);
-        rets += send_msg(socket_fd, "\r\n");
-        if(rets <= 0)
         {
-            log_error("send_msg() failed, could be broken pipe");
-            return false;
+            char *str = (char*)malloc(length+30);            
+            int rets = 0, pos = 0;
+            
+            if(IS_NULL(str))
+            {
+                log_error("malloc(%d) failed", length+30);
+                return false;
+            }
+            pos = snprintf(str, length+30, "$%d\r\n", length);
+            memcpy(&str[pos], buffer, length);
+            pos += length;
+            str[pos++] = '\r';
+            str[pos++] = '\n';
+            /* Varify the return value of send_msg as if the connection is broken then
+             * we have to stop the loop*/
+            rets = send_binary(socket_fd, str, pos);
+            if(rets <= 0)
+            {
+                log_error("send_msg() failed, could be broken pipe");
+                return false;
+            }
         }
         if(withscores == 2)
         {
@@ -285,6 +310,81 @@ bool Redis::handleZRangeCmd(string *args, int count, int socket_fd)
     return true;
 }
 
+bool Redis::handleSetBitCmd(string *args, int count, int socket_fd)
+{
+    int bitnumber, value;
+    bool flag = false;
+    if(count != 4)
+    {
+        send_msg(socket_fd, "-Err Wrong number of arguments for 'SetBit' command\r\n");
+        return false;
+    }
+    if(StringToInt(args[2].c_str(), &bitnumber) == false)
+    {
+        send_msg(socket_fd, "-Err max value is not a integer or out of range\r\n");
+        return false;
+    }
+
+    if(bitnumber < 0)
+    {
+        send_msg(socket_fd, "-Err max value is not a integer or out of range\r\n");
+        return false;
+    }
+
+    if(StringToInt(args[3].c_str(), &value) == false)
+    {
+        send_msg(socket_fd, "-Err max value is not a integer or out of range\r\n");
+        return false;
+    }
+
+    if(value < 0 && value > 1)
+    {
+        send_msg(socket_fd, "-ERR bit is not an integer or out of range\r\n");
+        return false;
+    }
+    value = kv.SETBIT(args[1], bitnumber, value ? true : false);
+    send_msg(socket_fd, ":%d\r\n", value);
+    return flag;
+}
+
+bool Redis::handleGetBitCmd(string *args, int count, int socket_fd)
+{
+    int bitnumber, value;
+    bool flag = false;
+    if(count != 3)
+    {
+        send_msg(socket_fd, "-Err Wrong number of arguments for 'GetBit' command\r\n");
+        return false;
+    }
+    if(StringToInt(args[2].c_str(), &bitnumber) == false)
+    {
+        send_msg(socket_fd, "-Err max value is not a integer or out of range\r\n");
+        return false;
+    }
+
+    if(bitnumber < 0)
+    {
+        send_msg(socket_fd, "-Err max value is not a integer or out of range\r\n");
+        return false;
+    }
+
+    value = kv.GETBIT(args[1], bitnumber);
+    send_msg(socket_fd, ":%d\r\n", value);
+    return flag;
+}
+
+bool Redis::handleSaveCmd(string *args, int count, int socket_fd)
+{
+    extern char *filename;
+    if(count != 1)
+    {
+        send_msg(socket_fd, "-Err Wrong number of arguments for 'SAVE' command\r\n");
+        return false;
+    }
+    Save(filename);
+    send_msg(socket_fd, "+OK\r\n");
+    return true;
+}
 bool Redis::Execute(string *args, int count, int socket_fd)
 {
     bool flag = false;
@@ -302,7 +402,6 @@ bool Redis::Execute(string *args, int count, int socket_fd)
             break;
         case REDIS_CMD_ZCARD:
             flag = handleZCardCmd(args, count, socket_fd);
-            Save(NULL);
             break;
         case REDIS_CMD_ZRANGE:
             flag = handleZRangeCmd(args, count, socket_fd);
@@ -311,7 +410,15 @@ bool Redis::Execute(string *args, int count, int socket_fd)
             flag = handleZCountCmd(args, count, socket_fd);
             break;
         case REDIS_CMD_SETBIT:
+            flag = handleSetBitCmd(args, count, socket_fd);
+            break;
         case REDIS_CMD_GETBIT:
+            flag = handleGetBitCmd(args, count, socket_fd);
+            break;
+        case REDIS_CMD_SAVE:
+            flag = handleSaveCmd(args, count, socket_fd);
+            exit(1);
+            break;
         default:
             log_msg("unknown cmd '%s'", args[0].c_str());
             send_msg(socket_fd, "-Err Unknown command '%s'\r\n", args[0].c_str());
@@ -389,7 +496,7 @@ void Redis::Load(const char *filename)
                 }
             default:
                 log_error("invalid type");
-                abort();
+                exit(1);
         }
     }
     log_error("total number of elements loaded : %d", count);
