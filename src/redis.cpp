@@ -312,7 +312,12 @@ bool Redis::handleZRangeCmd(string *args, int count, int socket_fd)
             len = snprintf(buffer, 16, "%d", score);
             send_msg(socket_fd, "$%d\r\n%s\r\n", len, buffer);
         }
-        --ret;
+        --ret;    
+    }
+    while(ret > 0)
+    {
+        send_msg(socket_fd, "$-1\r\n");
+        ret--;
     }
     return true;
 }

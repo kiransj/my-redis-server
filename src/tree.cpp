@@ -516,7 +516,7 @@ Node<KEY>* Tree<KEY>::GetNthElement(const int nth, int *rth)
         return NULL;
     }
     Node<KEY> *n = NULL;
-    if(nth <= (int)(num_elements/2))
+    if(nth <= (int)(num_elements/2) || IS_NULL(this->first->GetFrontLink()))
     {
         int tmp_count = this->first->GetCount();
         n = this->first;

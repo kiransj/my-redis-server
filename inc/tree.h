@@ -6,6 +6,11 @@
 #include <set>
 using namespace std;
 
+/*
+ * This datastructure is combination of AVL-Tree + doubly linked list + skip list
+ * all in the same node. This allow us a O(log(n)) access to any element.
+ * */
+
 template <class KEY>
 class Node
 {

@@ -92,14 +92,14 @@ int main(int argc, char *argv[])
     int port_number = 0;
     if(argc < 2 || argc > 3)
     {
-        log_error("usage %s <filename> <port_number:default 16000>", argv[0]);
+        log_error("usage %s <filename> <port_number:default 15000>", argv[0]);
         exit(1);
     }
     filename = argv[1];
     if(argc == 3)
         port_number = atoi(argv[2]);
 
-    /*Enable debug msg's*/
+    /*Enable debug msg's by uncommenting the below line*/
     //enable_debug_msg();
 
     /* load the database*/
