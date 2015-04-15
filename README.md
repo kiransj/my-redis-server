@@ -1,6 +1,6 @@
 A sample implementation of redis server which supports more than 100 concurrent clients using epoll.
 
-Only a subset of commands are supported now. List of supported commands are 
+Only a subset of commands are supported now. List of supported commands are
 1. ZADD. 
 2. ZRANGE.  
 3. ZCARD. 
@@ -9,7 +9,7 @@ Only a subset of commands are supported now. List of supported commands are
 6. GET. 
 7. SETBIT. 
 8. GETBIT. 
-9. Save. 
+9. SAVE. 
 
 Data structure used are 
 1. Variation of avl-tree. 
